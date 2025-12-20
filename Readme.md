@@ -1,187 +1,307 @@
-# History Guru 🧘‍♂️ v4.0 (The Manager Update)
+# Prompt SQL DB
 
-> **The 100% Offline, Single-File File Manager & Metadata Viewer for AI Images.**
+A powerful, single-file HTML application for managing AI image generation prompts with SQLite database storage. Automatically extracts metadata from images, organizes with tags and categories, and provides a beautiful interface for browsing and managing your AI art collection.
 
-**History Guru** has evolved. It is no longer just a viewer—it is a full-fledged **Local File Manager** for your ComfyUI and A1111 output folders.
+![GitHub](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0-green.svg)
 
-You can now **organize, sort, move, and fix** your AI generations without ever leaving the metadata view. It runs entirely in your browser using the modern *File System Access API*.
+## 🎯 Overview
 
+**Prompt SQL DB** is a self-contained web application that helps you organize and manage AI-generated images with their associated prompts, metadata, and tags. Perfect for artists, developers, and AI enthusiasts who work with Stable Diffusion, ComfyUI, Automatic1111, and other AI image generation tools.
 
-## ✨ What's New in v4.0?
+### Key Highlights
 
-* **📂 True File Management:** You can now **create real folders** and **move files** on your hard drive directly from the interface.
-* **Drag-and-drop Sorting:** Simply drag an image from the grid into a folder in the sidebar to move it. Perfect for separating "Keepers" from "Trash."
-* **🚀 Virtual Scrolling:** Handles **650+ images** smoothly with virtual scrolling. Only visible items are rendered, ensuring smooth performance even with thousands of images.
-* **🎬 Cinema Mode:** A new split-screen "Detail View." Click an image to see it full-height on the left while editing metadata on the right. Supports keyboard navigation (Arrow Keys) for fast review.
-* **🎥 Video Support:** Now supports playing and organizing `.mp4` and `.webm` files (Sora/AnimateDiff workflows) alongside your images.
-* **💾 Instant Fix & Save:** The "Fix Metadata" button no longer downloads a file to your "Downloads" folder. It now **writes the fixed image directly to your disk** (next to the original), injecting the missing metadata losslessly.
-* **⭐ Favorites System:** Star your favorite images for quick access. Filter to show only favorites with one click. Favorite button available in detail view for easy access.
-* **🔍 Enhanced Metadata Parsing:** Now supports Civitai metadata formats, including "prompt" and "workflow" chunks. Handles both ComfyUI workflow formats (direct nodes and nodes array).
-* **📊 Clickable Column Sorting:** Click any column header (Name, Model, Date Modified, Date Created) in list view to sort ascending/descending. Visual indicators show current sort direction.
-* **📋 Improved List View:** List view is now the default and primary view mode. Shows Model, Date Modified, and Date Created columns. Images are slightly larger for better visibility.
-* **🔎 Enhanced Search:** Search now works across file names, prompts, models, samplers, seeds, steps, CFG, size, and LoRA resources. Empty search restores folder view.
-* **⌨️ Keyboard Shortcuts:** Comprehensive keyboard navigation and shortcuts (press `?` for help).
-* **❓ Help System:** Built-in help overlay showing all functions and keyboard shortcuts.
-* **🗑️ Context Menu:** Right-click files and folders for quick actions (delete, etc.).
+- ✅ **Single File** - Everything in one HTML file, no installation required
+- ✅ **Zero Dependencies** - Works offline, no server needed
+- ✅ **SQLite Database** - Portable, exportable database files
+- ✅ **Auto-Metadata Extraction** - Automatically parses prompts from PNG/JPEG/WebP images
+- ✅ **Tag-Based Organization** - Flexible tagging system with categories
+- ✅ **Performance Optimized** - Handles 1000+ images efficiently
+- ✅ **Modern UI** - Beautiful glassmorphism design with dark/light themes
 
-## 🆕 Latest Updates (December 2025)
+## ✨ Features
 
-* **🖱️ Clickable Column Sorting:** Click any column header (Name, Model, Date Modified, Date Created) in list view to sort. Click again to reverse direction. Visual indicators (↑/↓) show current sort state.
-* **📋 List View Improvements:** List view is now the default and primary view mode. Images are 10-15% larger for better visibility. Grid view removed for optimal performance.
-* **⭐ Favorite Button in Detail View:** Added favorite star button in the corner of full-size image view for easy favoriting while reviewing images.
-* **🔎 Enhanced Search:** Search now works across file names, positive/negative prompts, model names, samplers, seeds, steps, CFG scale, size, and LoRA resources. Empty search restores folder view.
-* **📊 Updated List Columns:** Changed from "Model, Sampler, Seed" to "Model, Date Modified, Date Created" for more useful file information.
-* **🎨 UI Refinements:** Removed unnecessary view toggle buttons. Streamlined interface for better focus on content.
+### 📸 Image Management
+- **Automatic Metadata Extraction** - Extracts prompts, model, seed, steps, CFG, sampler, and more from:
+  - PNG files (ComfyUI, A1111 formats)
+  - JPEG files (EXIF UserComment with UTF-16 support)
+  - WebP files
+- **Full-Screen Detail View** - Click any image to see complete metadata
+- **Arrow Key Navigation** - Navigate between images in detail view
+- **Grid & List Views** - Switch between visual grid and compact list view
+- **Folder Organization** - Organize images into virtual folders
+- **Search & Filter** - Search by filename, prompts, or tags
 
-## 🆕 Previous Improvements (EXIF & Parsing Enhancements)
+### 🏷️ Tag System
+- **6 Default Categories** - Art Style, Camera, Lighting, Theme, Mood, Color
+- **Custom Categories** - Create your own categories with custom icons
+- **Custom Tags** - Add tags to any category
+- **Auto-Suggest** - Tags automatically suggested from parsed prompt content
+- **Tag Filtering** - Click tags to filter images
+- **Category Drawer** - Collapsible side panel for easy tag browsing
+- **Visual Indicators** - Categories highlight in blue when tags are selected
 
-* **📸 EXIF UserComment Extraction:** Full support for extracting metadata from EXIF UserComment fields in both PNG (`eXIf` chunks) and JPEG (APP1 segments). This enables parsing of Civitai images that store metadata in EXIF format.
-* **🌐 UTF-16 Encoding Support:** Properly decodes UTF-16LE and UTF-16BE encoded EXIF UserComment fields, handling the encoding format commonly used by Civitai and other platforms.
-* **🧹 Enhanced Text Cleaning:** Improved text cleaning function removes null bytes, control characters, and encoding artifacts that can break metadata parsing, ensuring reliable extraction from various sources.
-* **🔤 Case-Insensitive Parsing:** The A1111 parser now uses case-insensitive marker matching, handling variations like "Negative prompt:", "Negative Prompt:", and "negative prompt:" automatically.
-* **🎯 Flexible Parameter Extraction:** Enhanced regex patterns for extracting Steps, Sampler, CFG Scale, Seed, Size, and Model parameters with flexible spacing and formatting variations.
-* **🔄 Fallback Decoding:** Multiple fallback methods for extracting metadata from JPEG files, including direct UTF-16 decoding when EXIF structure parsing fails.
+### 💾 Database Management
+- **SQLite Storage** - Single portable database file
+- **Export/Import** - Save and load databases easily
+- **Auto-Save** - All changes saved in memory immediately
+- **Save Indicator** - Visual indicator showing database state
+- **Performance** - Optimized for large collections (1000+ images)
 
-## 🧠 Core Features (Retained)
+### 🎨 User Interface
+- **Modern Design** - Glassmorphism effects with smooth animations
+- **Dark/Light Themes** - Toggle between themes with persistence
+- **Responsive Layout** - Works on different screen sizes
+- **Keyboard Shortcuts** - ESC to close panels, arrow keys for navigation
+- **Toast Notifications** - User-friendly feedback for all actions
 
-* **⚡ Instant Search:** Filter thousands of images by Prompt, Model Name, Seed, or LoRA Name in milliseconds.
-* **✏️ Metadata Editor:** Manually edit missing or broken metadata fields (Prompt, Seed, Steps, etc.) directly in the sidebar.
-* **🕸️ Deep Recursive Tracing:** The "Brain" of the operation. It recursively traces upstream nodes to find prompts hidden behind `SeedVarianceEnhancers`, `Logic Gates`, or complex `Lora Stackers` that standard viewers miss.
-* **🔒 100% Private:** Zero server uploads. Your images never leave your hard drive.
-* **📱 List View (Primary):** Optimized list view with clickable column sorting. Shows Model, Date Modified, and Date Created. Larger thumbnails for better visibility.
-* **🌓 Theme Toggle:** Switch between dark and light themes with persistent preference storage.
-* **📈 Statistics Dashboard:** View comprehensive metadata analytics including model usage, LoRA popularity, and more.
+### 🔧 Advanced Features
+- **ComfyUI Support** - Full workflow parsing with recursive node traversal
+- **A1111 Support** - Complete Automatic1111 metadata parsing
+- **LoRA Detection** - Automatically extracts LoRA information
+- **Resource Tracking** - Tracks LoRAs, ControlNets, IP-Adapters
+- **UTF-16 Support** - Handles international characters in metadata
+- **Error Handling** - Robust error handling with fallback parsing
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-### For Chrome/Edge/Opera Users (Full Features)
+### Installation
 
-1.  **Download** the `Guru Manager ChromeEdge Edition.html` file from the root directory of this repository.
-2.  **Open** the file in **Chrome, Edge, or Opera**.
-3.  Click **"Open Folder"** and select your ComfyUI/Output directory.
-4.  **Grant Permission:** Your browser will ask if the site can "View and Edit" files. You **must click "Edit"** (or Allow) for the file manager features to work.
-5.  **Organize:** Right-click the sidebar to create folders. Drag and drop images to move them. Click images to view metadata.
-6.  **Explore:** Use keyboard shortcuts (press `?` for help), star favorites, sort by different criteria, and view statistics.
+1. **Download** the `Prompt_SQL_DB.html` file
+2. **Open** it in any modern web browser (Chrome, Edge, Firefox, Safari)
+3. **No installation required** - it's a single HTML file!
 
-### For Firefox Users (View-Only Mode)
+### First Time Setup
 
-1.  **Download** the `Guru Manager Firefox Edition.html` file from the root directory of this repository.
-2.  **Open** the file in **Firefox**.
-3.  Click **"Load Folder"** and select your ComfyUI/Output directory.
-4.  **Browse:** Click images to view metadata in full-screen detail view. Use arrow keys to navigate between images.
-5.  **Explore:** Use keyboard shortcuts (press `?` for help), star favorites, sort by different criteria, and view statistics.
+1. **Create a Database**
+   - Click "🆕 Create New Database" on the start screen
+   - Or click "➕ Add Image" - database will auto-create
 
-**Note:** The Firefox edition provides all viewing and metadata features, but does not support file operations (create, move, delete) due to browser API limitations.
+2. **Add Images**
+   - Click "➕ Add Image" button
+   - Select an image file (PNG, JPEG, or WebP)
+   - Metadata will be automatically extracted
+   - Add tags and organize as needed
+
+3. **Import Existing Database** (Optional)
+   - Click "📥 Import DB" button
+   - Select your SQLite database file
+   - All your images and tags will load
+
+## 📖 Basic Usage Guide
+
+### Adding Images
+
+1. Click the **"➕ Add Image"** button in the header
+2. Select an image file from your computer
+3. The app will automatically:
+   - Extract metadata (prompts, model, settings, etc.)
+   - Suggest tags based on prompt content
+4. Review and edit the extracted prompts if needed
+5. Select tags from the category blocks
+6. Click **"Save"** to add the image to your database
+
+### Organizing with Folders
+
+1. Click the **📁** button next to the folder dropdown
+2. Click **"Create Folder"** to add a new folder
+3. Select a folder from the dropdown to filter images
+4. Move images to folders:
+   - Click the **📁** button on any image card
+   - Or use the **📁** button in the detail view
+   - Select the destination folder
+
+### Using Tags
+
+**Adding Tags:**
+- When adding/editing images, click tags in the category blocks
+- Selected tags will highlight
+- Click **✏️** on any category to add custom tags
+
+**Filtering by Tags:**
+- Click the **🏷️** button to open the category drawer
+- Click any tag to filter images
+- Click the **🧹** button to clear all filters
+- Multiple tags can be active at once
+
+**Managing Categories:**
+- Click **📂 Add Category** to create custom categories
+- Click **⚙️** on any category in the drawer to manage it
+- Edit category name, icon, or delete category
+- Default categories cannot be deleted but icons can be customized
+
+### Viewing Images
+
+**Grid View:**
+- Default view showing image cards with thumbnails
+- Hover to see filename and tags
+- Click to open full-screen detail view
+
+**List View:**
+- Click the **🖼️** button to switch to list view
+- Compact rows with 110x110px thumbnails
+- Shows: Image, Filename, Model, Sampler, Size, Steps, CFG
+- Better for browsing large collections
+
+**Detail View:**
+- Click any image to see full details
+- Shows: Full image, prompts, all metadata, LoRAs/resources, tags
+- Use arrow keys (← → ↑ ↓) to navigate between images
+- Press ESC to close
+
+### Searching
+
+- Use the search bar at the top
+- Search by:
+  - Filename
+  - Prompt text (positive or negative)
+  - Tags
+- Search works across all folders
+
+### Database Management
+
+**Export Database:**
+- Click **"💾 Export DB"** button
+- Choose save location (Save As dialog)
+- File will be saved as `PromptDB.sqlite`
+
+**Import Database:**
+- Click **"📥 Import DB"** button
+- Select your SQLite database file
+- All data will be loaded
+
+**Note:** All changes are saved in memory immediately. Export to save to a file.
 
 ## ⌨️ Keyboard Shortcuts
 
-* `S` or `3` - Switch to Statistics view
-* `T` - Toggle theme (dark/light)
-* `?` - Show help overlay
-* `F` - Focus search box
-* `R` - Refresh folder
-* `Arrow Keys` - Navigate in detail view
-* `Enter` - Open selected image
-* `Delete` - Delete selected item
-* `Esc` - Close overlays / Exit detail view
+- **ESC** - Close category drawer or detail view
+- **← →** - Navigate between images in detail view
+- **↑ ↓** - Navigate between images in detail view
+- **Click Image** - Open full-screen detail view
 
-**Note:** List view is now the default and primary view mode. Grid view has been removed for better performance.
+## 🗄️ Database Schema
 
-Press `?` anytime to see the full list of shortcuts and features.
+The application uses SQLite with the following structure:
 
-## ⚠️ Browser Compatibility
+```sql
+-- Images table
+CREATE TABLE images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename TEXT NOT NULL,
+    image_data BLOB NOT NULL,
+    positive_prompt TEXT,
+    negative_prompt TEXT,
+    model TEXT,
+    seed TEXT,
+    steps TEXT,
+    cfg TEXT,
+    sampler TEXT,
+    size TEXT,
+    metadata_text TEXT,
+    folder_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE SET NULL
+);
 
-**Version 4.0 requires a browser that supports the *File System Access API*.**
+-- Image tags (many-to-many)
+CREATE TABLE image_tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_id INTEGER NOT NULL,
+    tag_name TEXT NOT NULL,
+    category TEXT,
+    FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE
+);
 
-| Browser | Status | Notes |
-| :--- | :--- | :--- |
-| **Google Chrome** | ✅ **Supported** | Recommended - Full file management features |
-| **Microsoft Edge** | ✅ **Supported** | Recommended - Full file management features |
-| **Opera** | ✅ **Supported** | Works out of the box - Full file management features |
-| **Firefox** | ✅ **Supported** | Use `Guru Manager Firefox Edition.html` - View-only mode (no file operations) |
-| **Safari** | ❌ **Not Supported** | Missing API support. |
+-- Custom tags (user-added tags per category)
+CREATE TABLE custom_tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
+    tag_name TEXT NOT NULL,
+    UNIQUE(category, tag_name)
+);
 
-### Firefox Edition
+-- Custom categories (user-created categories)
+CREATE TABLE custom_categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    icon TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-The **Firefox Edition** (`Guru Manager Firefox Edition.html`) provides the same UI/UX experience as v4.0, but without file management features (since Firefox doesn't support the File System Access API).
+-- Folders (virtual folder system)
+CREATE TABLE folders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-**✅ Available in Firefox Edition:**
-- ⭐ Favorites system with filter (favorite button in detail view)
-- 🔍 Enhanced search across file names, prompts, models, and all metadata fields
-- 📊 Clickable column sorting (Name, Model, Date Modified, Date Created) with ascending/descending toggle
-- 📋 Improved list view (default view) with larger images and better column layout
-- 🌓 Theme toggle (dark/light)
-- ⌨️ Keyboard shortcuts (press `?` for help)
-- 🖼️ Full-screen detail view with arrow key navigation
-- ❓ Help system overlay
-- 🚀 Enhanced metadata parsing (ComfyUI, Civitai, A1111, EXIF UserComment)
-- 📸 EXIF extraction support (PNG eXIf chunks, JPEG APP1 segments, UTF-16 decoding)
-- 📈 Statistics dashboard
-- 📱 List and Statistics view modes (Grid view removed for better performance)
+## 🌐 Browser Compatibility
 
-**❌ Not Available in Firefox Edition:**
-- File/folder creation
-- Drag-and-drop file moving
-- Direct file deletion
-- Metadata fixing/saving (requires File System Access API)
+- ✅ **Chrome/Edge** - Full support (File System Access API for export)
+- ✅ **Firefox** - Full support (download fallback for export)
+- ✅ **Safari** - Full support (download fallback for export)
+- ✅ **Opera** - Full support
 
-**Usage:** Open `Guru Manager Firefox Edition.html` in Firefox, click "Load Folder" to select your image directory.
+## 🔍 Supported Metadata Formats
 
-## 🔧 Technical Details
+### ComfyUI
+- Full workflow JSON parsing
+- Recursive node traversal
+- Extracts: prompts, model, seed, steps, CFG, sampler, LoRAs, ControlNets, IP-Adapters
 
-History Guru v4 uses a hybrid engine:
-* **File System Access API:** Gives the browser direct read/write access to a specific folder on your user's command. This allows for real file operations (Move/Rename/Create) without a backend server.
-* **IndexedDB Caching:** To handle folders with thousands of images, metadata is parsed once and stored in the browser's internal database. Subsequent loads are instant.
-* **Virtual Scrolling:** For collections with 100+ images, only visible items are rendered, dramatically improving performance and memory usage.
-* **Recursive Node Tracing:** Traces `positive` -> `conditioning` -> `node` links upwards endlessly until it finds the original text prompt.
-* **CRC32 Binary Injection:** Calculates valid checksums to insert new `tEXt` chunks into existing PNG binaries without re-encoding the image pixel data (lossless patching).
-* **Enhanced Metadata Parsing:** Supports multiple ComfyUI workflow formats (direct node objects and nodes array), Civitai "prompt" chunks, EXIF UserComment fields, and A1111 parameters format.
-* **EXIF Extraction Engine:** Parses EXIF structure to locate UserComment tags (37510/0x927C), handles encoding indicators (UNICODE/ASCII), and decodes UTF-16 text properly.
-* **Text Cleaning Pipeline:** Removes null bytes, control characters, and encoding artifacts before parsing to ensure reliable metadata extraction.
-* **Debounced Scroll Events:** Optimized scroll handling with 16ms throttling for smooth virtual scrolling performance.
+### Automatic1111 (A1111)
+- Standard A1111 format
+- Extracts: prompts, model, seed, steps, CFG, sampler, size, LoRAs
 
-## 📋 Supported Metadata Formats
+### JPEG EXIF
+- UTF-16LE/BE encoding support
+- EXIF UserComment extraction
+- Handles international characters
 
-* **ComfyUI Workflows:** Full support for ComfyUI workflow JSON in "workflow" and "prompt" chunks
-* **Civitai Format:** Supports Civitai's metadata format with "prompt" chunks and EXIF UserComment fields
-* **A1111 Parameters:** Automatic1111-style text parameters with enhanced parsing (case-insensitive markers, flexible patterns)
-* **PNG Text Chunks:** tEXt, iTXt, zTXt (compressed), and eXIf (EXIF) chunks
-* **JPEG/EXIF:** Full EXIF UserComment extraction with UTF-16LE/BE decoding support
-* **WebP:** WebP image format support
-* **MP4/WebM:** Video file support for Sora/AnimateDiff workflows
+## 📝 Tips & Best Practices
 
-### EXIF Metadata Support
+1. **Organize Early** - Create folders and add tags as you import images
+2. **Use Custom Tags** - Add your own tags to categories for better organization
+3. **Export Regularly** - Export your database periodically as backup
+4. **List View for Large Collections** - Switch to list view when browsing 500+ images
+5. **Search Across Folders** - Tags and search work across all folders
+6. **Keyboard Navigation** - Use arrow keys in detail view for quick browsing
 
-History Guru now fully supports extracting metadata from EXIF UserComment fields, which is the format used by many Civitai images:
+## 🐛 Troubleshooting
 
-* **PNG Files:** Extracts metadata from `eXIf` chunks containing EXIF data
-* **JPEG Files:** Extracts metadata from APP1 segments containing EXIF data
-* **Encoding Support:** Handles UTF-16LE, UTF-16BE, ASCII, and UTF-8 encoded UserComment fields
-* **Fallback Methods:** Multiple fallback decoding strategies ensure maximum compatibility
+**Images not parsing correctly?**
+- Ensure images have metadata embedded (ComfyUI/A1111 saved images)
+- Check browser console for error messages
+- Try re-saving the image in your AI tool
 
-## 🎯 Performance Features
+**Database not loading?**
+- Ensure the SQLite file is not corrupted
+- Try creating a new database and importing images again
+- Check browser console for errors
 
-* **Virtual Scrolling:** Automatically activates for folders with 100+ images
-* **IndexedDB Caching:** Metadata is cached for instant subsequent loads
-* **Debounced Events:** Scroll and resize events are optimized for performance
-* **Lazy Image Loading:** Images load on-demand as you scroll
+**Performance issues with many images?**
+- Use list view instead of grid view
+- Use folders to organize large collections
+- Use tag filters to narrow down results
 
-## 📁 Project Structure
+## 📄 License
 
-Files are organized into folders:
-- Root directory - Main HTML applications (`Guru Manager ChromeEdge Edition.html`, `Guru Manager Firefox Edition.html`)
-- `apps/` - Development copies and additional HTML files
-- `tools/` - AI development tools (Python scripts)
-- `docs/` - Documentation files
-- `data/` - Reference databases (JSON)
-- `test-data/` - Test images
-- `backup/` - Automatic backups
-
-See `INDEX.md` for a complete file index.
+MIT License - Feel free to use, modify, and distribute.
 
 ## 🤝 Contributing
 
-Feel free to fork this repository and submit Pull Requests.
+Contributions are welcome! Please feel free to submit issues or pull requests.
 
-**License:** MIT
-**Created by:** The Community & The AI Assistant
+## 🔗 Related Projects
+
+- Based on parsing logic from [Guru Manager](https://github.com/revisionhiep-create/comfyui-history-guru)
+- Inspired by [PromptCraft](https://github.com/BesianSherifaj-AI/PromptCraft)
+
+## 📧 Support
+
+For issues, questions, or suggestions, please open an issue on GitHub.
+
+---
+
+**Made with ❤️ for the AI art community**
