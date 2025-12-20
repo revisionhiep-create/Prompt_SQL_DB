@@ -1014,6 +1014,106 @@
             font-weight: 600;
             margin-bottom: 16px;
             color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-edit-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.8;
+        }
+
+        .detail-edit-btn:hover {
+            opacity: 1;
+            background: var(--accent-hover);
+        }
+
+        .detail-field-editable {
+            position: relative;
+        }
+
+        .detail-field-view {
+            position: relative;
+        }
+
+        .detail-field-edit {
+            display: none;
+        }
+
+        .detail-field-edit.active {
+            display: block;
+        }
+
+        .detail-field-view.hidden {
+            display: none;
+        }
+
+        .detail-prompt-edit {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            max-height: 400px;
+        }
+
+        .detail-meta-value-edit {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-family: monospace;
+        }
+
+        .detail-field-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .detail-field-save-btn, .detail-field-cancel-btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .detail-field-save-btn {
+            background: var(--success);
+            color: white;
+        }
+
+        .detail-field-save-btn:hover {
+            opacity: 0.9;
+        }
+
+        .detail-field-cancel-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .detail-field-cancel-btn:hover {
+            background: var(--bg-glass-hover);
         }
 
         .detail-meta-grid {
@@ -3022,6 +3122,20 @@
             }
         }
 
+        // Helper function to escape HTML for display
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Helper function to escape HTML attributes
+        function escapeHtmlAttr(text) {
+            if (!text) return '';
+            return String(text).replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
         // Show full-screen image detail
         function showImageDetail(imageId) {
             if (!db) return;
@@ -3080,42 +3194,119 @@
                         </div>
 
                         <div class="detail-section">
-                            <div class="detail-section-title">✨ Positive Prompt</div>
-                            <div class="detail-prompt">${image.positive_prompt || 'No positive prompt'}</div>
+                            <div class="detail-section-title">
+                                <span>✨ Positive Prompt</span>
+                                <button class="detail-edit-btn" onclick="editDetailField(${image.id}, 'positive_prompt')">✏️ Edit</button>
+                            </div>
+                            <div class="detail-field-editable">
+                                <div class="detail-field-view" id="positive_prompt_view_${image.id}">
+                                    <div class="detail-prompt">${escapeHtml(image.positive_prompt || 'No positive prompt')}</div>
+                                </div>
+                                <div class="detail-field-edit" id="positive_prompt_edit_${image.id}">
+                                    <textarea class="detail-prompt-edit" id="positive_prompt_input_${image.id}">${String(image.positive_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                    <div class="detail-field-actions">
+                                        <button class="detail-field-save-btn" onclick="saveDetailField(${image.id}, 'positive_prompt')">💾 Save</button>
+                                        <button class="detail-field-cancel-btn" onclick="cancelEditDetailField(${image.id}, 'positive_prompt')">✖️ Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="detail-section">
-                            <div class="detail-section-title">🚫 Negative Prompt</div>
-                            <div class="detail-prompt">${image.negative_prompt || 'No negative prompt'}</div>
+                            <div class="detail-section-title">
+                                <span>🚫 Negative Prompt</span>
+                                <button class="detail-edit-btn" onclick="editDetailField(${image.id}, 'negative_prompt')">✏️ Edit</button>
+                            </div>
+                            <div class="detail-field-editable">
+                                <div class="detail-field-view" id="negative_prompt_view_${image.id}">
+                                    <div class="detail-prompt">${escapeHtml(image.negative_prompt || 'No negative prompt')}</div>
+                                </div>
+                                <div class="detail-field-edit" id="negative_prompt_edit_${image.id}">
+                                    <textarea class="detail-prompt-edit" id="negative_prompt_input_${image.id}">${String(image.negative_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                    <div class="detail-field-actions">
+                                        <button class="detail-field-save-btn" onclick="saveDetailField(${image.id}, 'negative_prompt')">💾 Save</button>
+                                        <button class="detail-field-cancel-btn" onclick="cancelEditDetailField(${image.id}, 'negative_prompt')">✖️ Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="detail-section">
-                            <div class="detail-section-title">⚙️ Generation Parameters</div>
+                            <div class="detail-section-title">
+                                <span>⚙️ Generation Parameters</span>
+                                <button class="detail-edit-btn" onclick="editDetailField(${image.id}, 'params')">✏️ Edit All</button>
+                            </div>
                             <div class="detail-meta-grid">
                                 <div class="detail-meta-item">
                                     <div class="detail-meta-label">Model</div>
-                                    <div class="detail-meta-value">${image.model || '?'}</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="model_view_${image.id}">
+                                            <div class="detail-meta-value">${escapeHtml(image.model || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="model_edit_${image.id}">
+                                            <input type="text" class="detail-meta-value-edit" id="model_input_${image.id}" value="${escapeHtmlAttr(image.model || '')}">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="detail-meta-item">
                                     <div class="detail-meta-label">Seed</div>
-                                    <div class="detail-meta-value">${image.seed || '?'}</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="seed_view_${image.id}">
+                                            <div class="detail-meta-value">${escapeHtml(image.seed || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="seed_edit_${image.id}">
+                                            <input type="text" class="detail-meta-value-edit" id="seed_input_${image.id}" value="${escapeHtmlAttr(image.seed || '')}">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="detail-meta-item">
                                     <div class="detail-meta-label">Steps</div>
-                                    <div class="detail-meta-value">${image.steps || '?'}</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="steps_view_${image.id}">
+                                            <div class="detail-meta-value">${escapeHtml(image.steps || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="steps_edit_${image.id}">
+                                            <input type="text" class="detail-meta-value-edit" id="steps_input_${image.id}" value="${escapeHtmlAttr(image.steps || '')}">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="detail-meta-item">
                                     <div class="detail-meta-label">CFG Scale</div>
-                                    <div class="detail-meta-value">${image.cfg || '?'}</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="cfg_view_${image.id}">
+                                            <div class="detail-meta-value">${escapeHtml(image.cfg || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="cfg_edit_${image.id}">
+                                            <input type="text" class="detail-meta-value-edit" id="cfg_input_${image.id}" value="${escapeHtmlAttr(image.cfg || '')}">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="detail-meta-item">
                                     <div class="detail-meta-label">Sampler</div>
-                                    <div class="detail-meta-value">${image.sampler || '?'}</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="sampler_view_${image.id}">
+                                            <div class="detail-meta-value">${escapeHtml(image.sampler || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="sampler_edit_${image.id}">
+                                            <input type="text" class="detail-meta-value-edit" id="sampler_input_${image.id}" value="${escapeHtmlAttr(image.sampler || '')}">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="detail-meta-item">
                                     <div class="detail-meta-label">Size</div>
-                                    <div class="detail-meta-value">${image.size || '?'}</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="size_view_${image.id}">
+                                            <div class="detail-meta-value">${escapeHtml(image.size || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="size_edit_${image.id}">
+                                            <input type="text" class="detail-meta-value-edit" id="size_input_${image.id}" value="${escapeHtmlAttr(image.size || '')}">
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                            <div class="detail-field-actions" id="params_actions_${image.id}" style="display: none; margin-top: 16px;">
+                                <button class="detail-field-save-btn" onclick="saveDetailField(${image.id}, 'params')">💾 Save All</button>
+                                <button class="detail-field-cancel-btn" onclick="cancelEditDetailField(${image.id}, 'params')">✖️ Cancel</button>
                             </div>
                         </div>
 
@@ -3166,6 +3357,137 @@
         function closeDetailView() {
             document.getElementById('detailView').classList.remove('active');
             currentImageIndex = -1;
+        }
+
+        // Edit detail field (toggle edit mode)
+        function editDetailField(imageId, fieldName) {
+            if (!db) return;
+
+            if (fieldName === 'params') {
+                // Show all parameter edit fields
+                const params = ['model', 'seed', 'steps', 'cfg', 'sampler', 'size'];
+                params.forEach(param => {
+                    const viewEl = document.getElementById(`${param}_view_${imageId}`);
+                    const editEl = document.getElementById(`${param}_edit_${imageId}`);
+                    if (viewEl && editEl) {
+                        viewEl.classList.add('hidden');
+                        editEl.classList.add('active');
+                    }
+                });
+                // Show save/cancel buttons
+                const actionsEl = document.getElementById(`params_actions_${imageId}`);
+                if (actionsEl) actionsEl.style.display = 'flex';
+            } else {
+                // Show edit field for single field (positive_prompt, negative_prompt)
+                const viewEl = document.getElementById(`${fieldName}_view_${imageId}`);
+                const editEl = document.getElementById(`${fieldName}_edit_${imageId}`);
+                if (viewEl && editEl) {
+                    viewEl.classList.add('hidden');
+                    editEl.classList.add('active');
+                    // Focus on textarea/input
+                    const inputEl = document.getElementById(`${fieldName}_input_${imageId}`);
+                    if (inputEl) {
+                        inputEl.focus();
+                        if (inputEl.tagName === 'TEXTAREA') {
+                            inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Cancel editing detail field
+        function cancelEditDetailField(imageId, fieldName) {
+            if (fieldName === 'params') {
+                // Hide all parameter edit fields
+                const params = ['model', 'seed', 'steps', 'cfg', 'sampler', 'size'];
+                params.forEach(param => {
+                    const viewEl = document.getElementById(`${param}_view_${imageId}`);
+                    const editEl = document.getElementById(`${param}_edit_${imageId}`);
+                    if (viewEl && editEl) {
+                        viewEl.classList.remove('hidden');
+                        editEl.classList.remove('active');
+                    }
+                });
+                // Hide save/cancel buttons
+                const actionsEl = document.getElementById(`params_actions_${imageId}`);
+                if (actionsEl) actionsEl.style.display = 'none';
+            } else {
+                // Hide edit field for single field
+                const viewEl = document.getElementById(`${fieldName}_view_${imageId}`);
+                const editEl = document.getElementById(`${fieldName}_edit_${imageId}`);
+                if (viewEl && editEl) {
+                    viewEl.classList.remove('hidden');
+                    editEl.classList.remove('active');
+                }
+            }
+        }
+
+        // Save detail field to database
+        async function saveDetailField(imageId, fieldName) {
+            if (!db) {
+                showToast('Database not available', 'error');
+                return;
+            }
+
+            try {
+                if (fieldName === 'params') {
+                    // Save all parameters
+                    const params = {
+                        model: document.getElementById(`model_input_${imageId}`)?.value || null,
+                        seed: document.getElementById(`seed_input_${imageId}`)?.value || null,
+                        steps: document.getElementById(`steps_input_${imageId}`)?.value || null,
+                        cfg: document.getElementById(`cfg_input_${imageId}`)?.value || null,
+                        sampler: document.getElementById(`sampler_input_${imageId}`)?.value || null,
+                        size: document.getElementById(`size_input_${imageId}`)?.value || null
+                    };
+
+                    // Get current values to preserve other fields
+                    const currentResult = db.exec(`SELECT model, seed, steps, cfg, sampler, size FROM images WHERE id = ?;`, [imageId]);
+                    if (currentResult.length > 0 && currentResult[0].values.length > 0) {
+                        const current = currentResult[0].values[0];
+                        // Use new values or keep current ones
+                        params.model = params.model !== null ? params.model : (current[0] || null);
+                        params.seed = params.seed !== null ? params.seed : (current[1] || null);
+                        params.steps = params.steps !== null ? params.steps : (current[2] || null);
+                        params.cfg = params.cfg !== null ? params.cfg : (current[3] || null);
+                        params.sampler = params.sampler !== null ? params.sampler : (current[4] || null);
+                        params.size = params.size !== null ? params.size : (current[5] || null);
+                    }
+
+                    db.run(
+                        `UPDATE images SET model=?, seed=?, steps=?, cfg=?, sampler=?, size=? WHERE id=?;`,
+                        [params.model, params.seed, params.steps, params.cfg, params.sampler, params.size, imageId]
+                    );
+
+                    showToast('Generation parameters updated!', 'success');
+                    cancelEditDetailField(imageId, 'params');
+                } else {
+                    // Save single field (positive_prompt or negative_prompt)
+                    const inputEl = document.getElementById(`${fieldName}_input_${imageId}`);
+                    if (!inputEl) return;
+
+                    const newValue = inputEl.value || null;
+                    const dbFieldName = fieldName === 'positive_prompt' ? 'positive_prompt' : 'negative_prompt';
+
+                    db.run(
+                        `UPDATE images SET ${dbFieldName}=? WHERE id=?;`,
+                        [newValue, imageId]
+                    );
+
+                    showToast(`${fieldName === 'positive_prompt' ? 'Positive' : 'Negative'} prompt updated!`, 'success');
+                    cancelEditDetailField(imageId, fieldName);
+                }
+
+                // Mark as unsaved
+                if (typeof markUnsaved === 'function') markUnsaved();
+
+                // Refresh detail view to show updated values
+                showImageDetail(imageId);
+            } catch (error) {
+                console.error('Error saving field:', error);
+                showToast('Error saving field: ' + error.message, 'error');
+            }
         }
         
         // Navigate to next/previous image in detail view
