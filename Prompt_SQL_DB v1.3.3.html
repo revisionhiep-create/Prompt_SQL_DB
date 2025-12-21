@@ -1090,6 +1090,23 @@
         .detail-resources { display: flex; flex-wrap: wrap; gap: 8px; }
         .detail-resource { padding: 6px 12px; background: var(--accent-light); border: 1px solid var(--accent); border-radius: 12px; font-size: 13px; }
 
+        /* Progress Bar for Batch */
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         @media (max-width: 768px) {
             .header { padding: 15px 20px; flex-direction: column; gap: 15px; }
             .detail-content { grid-template-columns: 1fr; padding: 20px; }
@@ -1127,6 +1144,7 @@
         </div>
 
         <div class="header-right">
+            <button class="btn btn-secondary" onclick="showBatchAddModal()" title="Add Multiple Images">📦 Batch Add</button>
             <button class="btn" onclick="showAddImageModal()">➕ Add Image</button>
             <button class="btn btn-secondary" onclick="showAddCategoryModal()">📂 Category</button>
             <button class="btn btn-secondary btn-icon" onclick="showHelpModal()" title="Help">❓</button>
@@ -1204,8 +1222,9 @@
         <div class="detail-content" id="detailContent"></div>
     </div>
 
-    <!-- Hidden File Input -->
+    <!-- Hidden File Inputs -->
     <input type="file" id="fileInput" style="display: none;" accept="image/*,.sqlite,.db" onchange="handleFileInput(event)">
+    <input type="file" id="batchFileInput" style="display: none;" accept="image/*" multiple onchange="handleBatchFileInput(event)">
 
     <!-- sql.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
@@ -2148,6 +2167,79 @@
             } catch (err) {
                 showToast('Save failed: ' + err.message, 'error');
             }
+        }
+
+        // --- Batch Import ---
+        function showBatchAddModal() {
+            if (!db) { initializeDatabase().then(showBatchAddModal); return; }
+            showModal('Batch Import Images', `
+                <div style="text-align:center; padding:20px;">
+                    <div style="font-size: 50px; margin-bottom: 20px;">📦</div>
+                    <p style="margin-bottom: 20px; color: var(--text-secondary);">Select multiple images to automatically scan and import them into your database.</p>
+                    <button class="btn" onclick="document.getElementById('batchFileInput').click()">📁 Select Images or Folder</button>
+                    <div id="batchProgressContainer" style="display:none; margin-top: 30px;">
+                        <p id="batchProgressText" style="font-size: 14px; margin-bottom: 10px;">Processing images...</p>
+                        <div class="progress-container"><div id="batchProgressBar" class="progress-bar"></div></div>
+                    </div>
+                </div>
+            `);
+        }
+
+        async function handleBatchFileInput(event) {
+            const files = Array.from(event.target.files).filter(f => f.type.startsWith('image/'));
+            if (files.length === 0) return;
+
+            document.getElementById('batchProgressContainer').style.display = 'block';
+            const bar = document.getElementById('batchProgressBar');
+            const text = document.getElementById('batchProgressText');
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            db.run('BEGIN TRANSACTION');
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const progress = Math.round(((i + 1) / files.length) * 100);
+                    bar.style.width = progress + '%';
+                    text.textContent = `Processing image ${i + 1} of ${files.length}...`;
+                    
+                    // Allow UI to refresh
+                    if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+
+                    try {
+                        const buf = await file.arrayBuffer();
+                        const raw = await extractText(buf);
+                        const p = parseMetadata(raw);
+                        
+                        db.run(`INSERT INTO images (filename, image_data, positive_prompt, negative_prompt, model, seed, steps, cfg, sampler, size, metadata_text, folder_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+                            [file.name, new Uint8Array(buf), p.pos || '', p.neg || '', p.meta.model, p.meta.seed, p.meta.steps, p.meta.cfg, p.meta.sampler, p.meta.size, raw, currentFolderId]);
+                        
+                        const idRes = db.exec("SELECT last_insert_rowid()");
+                        const id = idRes[0].values[0][0];
+                        
+                        // Auto-tagging
+                        const suggested = suggestTagsFromMetadata(p);
+                        suggested.forEach(s => {
+                            db.run("INSERT INTO image_tags (image_id, tag_name, category) VALUES (?,?,?)", [id, s.tag, s.category || 'Other']);
+                        });
+                        
+                        successCount++;
+                    } catch (e) {
+                        console.error('Error processing', file.name, e);
+                        errorCount++;
+                    }
+                }
+                db.run('COMMIT');
+                showToast(`Batch Import Complete! Added: ${successCount}, Failed: ${errorCount}`, successCount > 0 ? 'success' : 'error');
+                markUnsaved();
+                closeModal();
+                loadImages();
+            } catch (err) {
+                db.run('ROLLBACK');
+                showToast('Batch Import Failed: ' + err.message, 'error');
+            }
+            event.target.value = ''; // Reset input
         }
 
         function showImageDetail(id) {

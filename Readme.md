@@ -33,6 +33,7 @@ A powerful, single-file HTML application for managing AI image generation prompt
   - PNG files (ComfyUI, A1111 formats)
   - JPEG files (EXIF UserComment with UTF-16 LE/BE support)
   - WebP files
+- **📦 Batch Add Images** - Select hundreds of images at once; the app will automatically parse, auto-tag, and import them all in the background.
 - **Full-Screen Detail View** - Click any image to see complete metadata, interactive tags, and one-click copy buttons.
 - **Advanced "Smart" Search** - Search by filename, prompt, or use prefixes like `model:sdxl`, `size:1024x1024`, `steps:20`, `cfg:7`, `sampler:euler`, `seed:12345`.
 - **Navigation** - Use arrow keys (← →) or click empty black space to close the detail view.
