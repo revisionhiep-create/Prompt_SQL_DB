@@ -1128,9 +1128,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 20px;
-            z-index: 3000;
+            z-index: 10001;
             box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
-            pointer-events: auto;
         }
 
         .permission-banner.show {
@@ -1142,13 +1141,12 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            position: relative;
-            z-index: 3001;
-            pointer-events: auto;
+            min-width: 0;
         }
 
         .permission-banner-icon {
             font-size: 24px;
+            flex-shrink: 0;
         }
 
         .permission-banner-text {
@@ -1163,14 +1161,12 @@
         .permission-banner-actions {
             display: flex;
             gap: 12px;
-            position: relative;
-            z-index: 3001;
+            flex-shrink: 0;
         }
 
         .permission-banner-actions .btn {
-            position: relative;
-            z-index: 3002;
-            pointer-events: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         @media (max-width: 768px) {
