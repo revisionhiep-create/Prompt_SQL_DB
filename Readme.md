@@ -1,4 +1,4 @@
-# Prompt SQL DB (ChromeEdge Edition)
+# Prompt SQL DB (v1.3.3)
 
 A powerful, single-file HTML application for managing AI image generation prompts with SQLite database storage. Automatically extracts metadata from images, organizes with tags and categories, and provides a beautiful interface for browsing and managing your AI art collection.
 
@@ -14,11 +14,17 @@ A powerful, single-file HTML application for managing AI image generation prompt
 - ✅ **Single File** - Everything in one HTML file, no installation required
 - ✅ **Zero Dependencies** - Works offline, no server needed
 - ✅ **SQLite Database** - Portable, exportable database files
-- ✅ **Batch Importer** - Sync entire folders of images automatically
-- ✅ **Auto-Metadata Extraction** - Parses prompts from PNG/JPEG/WebP (including Flux/Civitai resources)
+- ✅ **Metadata extraction** - Parses prompts from PNG/JPEG/WebP (including Flux/Civitai resources)
 - ✅ **Bulk Selection** - Select, move, tag, or delete multiple images at once
 - ✅ **Performance Optimized** - Handles thousands of images with virtualized cleanup and debounced search
-- ✅ **Modern UI** - Glassmorphism design with dark/light themes and keyboard-first workflow
+- ✅ **Universal Compatibility** - Dedicated version for Firefox and Safari with full feature parity
+
+## 🚀 Latest Updates (v1.3.3)
+
+- **Universal Edition Parity**: The Firefox/Safari version now includes all UI features and the advanced "deep" parsing engine (Civitai, Flux, complex ComfyUI workflows).
+- **UI Cleanup**: Streamlined the detail view by removing redundant edit buttons; individual fields are now directly interactive.
+- **Improved Performance**: Faster grid rendering and more efficient memory management for large collections.
+- **Bug Fixes**: Restored missing modal fields and tag categories in the Universal version.
 
 ## ✨ Features
 
@@ -27,7 +33,6 @@ A powerful, single-file HTML application for managing AI image generation prompt
   - PNG files (ComfyUI, A1111 formats)
   - JPEG files (EXIF UserComment with UTF-16 LE/BE support)
   - WebP files
-- **Batch Importer (Sync Folder)** - Select a local directory to scan for images, extract metadata, and add them to your database in one go.
 - **Full-Screen Detail View** - Click any image to see complete metadata, interactive tags, and one-click copy buttons.
 - **Advanced "Smart" Search** - Search by filename, prompt, or use prefixes like `model:sdxl`, `size:1024x1024`, `steps:20`, `cfg:7`, `sampler:euler`, `seed:12345`.
 - **Navigation** - Use arrow keys (← →) or click empty black space to close the detail view.
@@ -48,11 +53,11 @@ A powerful, single-file HTML application for managing AI image generation prompt
 - **Category Drawer** - Collapsible side panel (320px) for deep tagging and filtering.
 
 ### 💾 Database Management
-- **Quick Save (⚡)** - One-click save to the last opened database file (Chrome/Edge).
-- **Auto-Save** - Configurable interval (default 5 mins) to ensure you never lose work.
+- **Quick Save (⚡)** - One-click save to the last opened database file (Chrome/Edge Edition only).
+- **Auto-Save** - Configurable interval to ensure you never lose work (Chrome/Edge Edition only).
 - **Status Dot** - Visual indicator showing database state (🟢 Saved, 🟡 Unsaved, 🔵 Saving).
 - **Drag & Drop** - Drop images to add them, or SQLite files to load your database instantly.
-- **Auto-Open** - Remembers your last database and folder for seamless sessions.
+- **Auto-Open** - Remembers your last database and folder for seamless sessions (Chrome/Edge Edition only).
 
 ### 🎨 User Interface
 - **Modern Design** - Glassmorphism effects, smooth animations, and optimized layout.
@@ -60,40 +65,41 @@ A powerful, single-file HTML application for managing AI image generation prompt
 - **Responsive Layout** - Adapts to different screen sizes.
 - **Toast Notifications** - Contextual feedback for all operations.
 
-## 🚀 Getting Started
+## 🏁 Getting Started
 
 ### Installation
 
 1. **Download** the appropriate version:
-   - **`Prompt SQL DB ChromeEdge Edition.html`** - **Recommended**. Enhanced version with auto-save, sync folder, and advanced file management (Chrome/Edge only).
-   - **`Prompt_SQL_DB.html`** - Cross-browser version (works in Firefox, Safari) with core features.
+   - **`Prompt SQL DB ChromeEdge Edition v1.3.3.html`** - **Recommended**. Enhanced version with auto-save, sync folder, and advanced file management (Requires Chrome or Edge).
+   - **`Prompt_SQL_DB v1.3.3.html`** - **Universal version**. Works in Firefox, Safari, and other browsers. Uses manual import/export for database management.
 2. **Open** it in any modern web browser.
 3. **No installation required** - it's a single HTML file!
 
 ### Which Version Should I Use?
 
-**Use `Prompt SQL DB ChromeEdge Edition.html` if you're using Chrome or Edge:**
+**Use `Prompt SQL DB ChromeEdge Edition v1.3.3.html` if you're using Chrome or Edge:**
 - ✅ **Batch Importer (Sync Folder)** functionality.
 - ✅ **Auto-save** and **Quick Save** (saves directly to file).
 - ✅ **Auto-open** database on startup.
 - ✅ **Keyboard Shortcuts** for database management.
 
-**Use `Prompt_SQL_DB.html` if you're using Firefox or Safari:**
+**Use `Prompt_SQL_DB v1.3.3.html` if you're using Firefox, Safari, or mobile:**
+- ✅ **Feature Parity**: Now includes the exact same UI and parsing engine as the Chrome edition.
 - ✅ Works in all modern browsers.
-- ✅ Standard file save/load (downloads a file).
-- ✅ All core management features (tags, folders, smart search).
+- ✅ Standard file save/load (downloads a file to your Downloads folder).
+- ✅ All core management features (tags, folders, smart search, bulk actions).
 
 ## ⌨️ Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
-| **`Ctrl + S`** | Quick Save to last opened file (Chrome/Edge) |
+| **`Ctrl + S`** | Quick Save to last opened file (Chrome/Edge Edition only) |
 | **`Ctrl + O`** | Import/Open Database |
 | **`Ctrl + E`** | Export/Save Database |
 | **`/`** | Focus Search Bar |
 | **`T`** | Toggle Dark/Light Theme |
 | **`V`** | Toggle View Mode (Grid/List) |
-| **`B`** | Toggle Category Drawer |
+| **`B`** | Toggle Category Sidebar |
 | **`ESC`** | Close detail view, drawer, or modals |
 | **`←` `→`** | Navigate images in detail view |
 | **`Shift + Click`** | Select range of images in grid |
@@ -132,7 +138,7 @@ CREATE TABLE images (
 
 ## 📝 Tips & Best Practices
 
-1. **Sync Your Library**: Use the **Sync Folder** button to quickly bring in hundreds of images from your generation folders.
+1. **Sync Your Library**: (Chrome/Edge only) Use the **Sync Folder** button to quickly bring in hundreds of images from your generation folders.
 2. **Bulk Tagging**: Use `Shift + Click` to select a range of images, then use the bulk action bar to add tags like "Favorites" or "SDXL" to all of them at once.
 3. **Interactive Metadata**: In detail view, click on any prompt, model name, or seed to instantly copy it to your clipboard.
 4. **Smart Search**: Try searching `model:flux` or `steps:20` to quickly filter your collection.
