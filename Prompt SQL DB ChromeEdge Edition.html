@@ -1520,9 +1520,24 @@
 
         // Try to auto-open PromptDB.sqlite from saved directory
         async function tryAutoOpenDB() {
-            if (!savedDirectoryHandle || db) return; // Already have DB or no directory handle
+            if (!savedDirectoryHandle || db) {
+                return; // Already have DB or no directory handle
+            }
             
             try {
+                // Check permission before accessing the directory
+                if (savedDirectoryHandle.queryPermission) {
+                    const permissionStatus = await savedDirectoryHandle.queryPermission({ mode: 'readwrite' });
+                    if (permissionStatus !== 'granted') {
+                        // Request permission if not granted
+                        const newPermissionStatus = await savedDirectoryHandle.requestPermission({ mode: 'readwrite' });
+                        if (newPermissionStatus !== 'granted') {
+                            // Permission denied - can't auto-open
+                            return;
+                        }
+                    }
+                }
+                
                 // Check if PromptDB.sqlite exists in the directory
                 const fileHandle = await savedDirectoryHandle.getFileHandle('PromptDB.sqlite');
                 const file = await fileHandle.getFile();
@@ -3870,8 +3885,96 @@
         }
 
         // Import database
-        function showImportModal() {
-            document.getElementById('fileInput').click();
+        async function showImportModal() {
+            // Use File System Access API if available (Chrome/Edge) to get file handle for auto-save
+            if ('showOpenFilePicker' in window) {
+                try {
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'SQLite Database',
+                            accept: { 'application/x-sqlite3': ['.sqlite', '.db'] }
+                        }],
+                        multiple: false
+                    });
+                    
+                    const file = await fileHandle.getFile();
+                    
+                    // Import the database
+                    try {
+                        await initSQL();
+                        const arrayBuffer = await file.arrayBuffer();
+                        db = new SQL.Database(new Uint8Array(arrayBuffer));
+                        
+                        // Save file handle for quick save and auto-save
+                        await saveFileHandle(fileHandle);
+                        
+                        // Try to get parent directory handle for auto-open
+                        // Note: File handles don't provide parent directory access directly
+                        // User would need to use directory picker for auto-open to work
+                        
+                        // Migrate existing databases
+                        try {
+                            db.exec(`CREATE TABLE IF NOT EXISTS folders (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                name TEXT NOT NULL UNIQUE,
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                            );`);
+                            
+                            try {
+                                db.exec(`ALTER TABLE images ADD COLUMN folder_id INTEGER;`);
+                            } catch (e) {
+                                // Column already exists, ignore
+                            }
+                            
+                            try {
+                                db.exec(`CREATE TABLE IF NOT EXISTS custom_categories (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    name TEXT NOT NULL UNIQUE,
+                                    icon TEXT,
+                                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                                );`);
+                            } catch (e) {
+                                console.warn('Custom categories table creation error:', e);
+                            }
+                            
+                            // Migrate "All Images" folder if it exists
+                            try {
+                                const allImagesCheck = db.exec(`SELECT id FROM folders WHERE name = 'All Images';`);
+                                if (allImagesCheck.length > 0 && allImagesCheck[0].values.length > 0) {
+                                    const folderId = allImagesCheck[0].values[0][0];
+                                    db.run(`UPDATE images SET folder_id = NULL WHERE folder_id = ?;`, [folderId]);
+                                    db.run(`UPDATE folders SET name = 'My Images' WHERE id = ?;`, [folderId]);
+                                }
+                            } catch (e) {
+                                console.warn('All Images migration error:', e);
+                            }
+                        } catch (e) {
+                            console.warn('Migration error (may be normal):', e);
+                        }
+                        
+                        showToast('Database imported successfully!', 'success');
+                        if (typeof markSaved === 'function') markSaved();
+                        loadFolders();
+                        loadImages();
+                        
+                        // Start auto-save if enabled
+                        startAutoSave();
+                    } catch (error) {
+                        console.error('Error importing database:', error);
+                        showToast('Error importing: ' + error.message, 'error');
+                    }
+                } catch (error) {
+                    // User cancelled or error - fall back to file input
+                    if (error.name !== 'AbortError') {
+                        console.warn('File System Access API error:', error);
+                        // Fall through to file input
+                        document.getElementById('fileInput').click();
+                    }
+                }
+            } else {
+                // Fallback to file input for browsers without File System Access API
+                document.getElementById('fileInput').click();
+            }
         }
 
         // Auto-save functionality
