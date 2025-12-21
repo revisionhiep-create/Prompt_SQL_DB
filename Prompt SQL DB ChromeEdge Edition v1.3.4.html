@@ -1223,7 +1223,7 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
-            z-index: 2000;
+            z-index: 10000;
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.3s;
@@ -3594,7 +3594,31 @@
             if (event) event.stopPropagation();
             const result = db.exec("SELECT positive_prompt FROM images WHERE id = ?", [id]);
             if (result.length && result[0].values.length) {
-                copyToClipboard(result[0].values[0][0], "Prompt");
+                copyToClipboard(result[0].values[0][0], "Positive prompt");
+            }
+        }
+
+        async function copyNegativePromptToClipboard(id, event) {
+            if (event) event.stopPropagation();
+            const result = db.exec("SELECT negative_prompt FROM images WHERE id = ?", [id]);
+            if (result.length && result[0].values.length) {
+                copyToClipboard(result[0].values[0][0], "Negative prompt");
+            }
+        }
+
+        async function copyModelToClipboard(id, event) {
+            if (event) event.stopPropagation();
+            const result = db.exec("SELECT model FROM images WHERE id = ?", [id]);
+            if (result.length && result[0].values.length) {
+                copyToClipboard(result[0].values[0][0], "Model");
+            }
+        }
+
+        async function copySeedToClipboard(id, event) {
+            if (event) event.stopPropagation();
+            const result = db.exec("SELECT seed FROM images WHERE id = ?", [id]);
+            if (result.length && result[0].values.length) {
+                copyToClipboard(result[0].values[0][0], "Seed");
             }
         }
 
@@ -4485,7 +4509,7 @@
                             <div class="detail-section-title">
                                 <span>✨ Positive Prompt</span>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyToClipboard('${String(image.positive_prompt || '').replace(/'/g, "\\'")}', 'Prompt')">📋 Copy</button>
+                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyPromptToClipboard(${image.id})">📋 Copy</button>
                                     <button class="detail-edit-btn" onclick="editDetailField(${image.id}, 'positive_prompt')">✏️ Edit</button>
                                 </div>
                             </div>
@@ -4507,7 +4531,7 @@
                             <div class="detail-section-title">
                                 <span>🚫 Negative Prompt</span>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyToClipboard('${String(image.negative_prompt || '').replace(/'/g, "\\'")}', 'Negative prompt')">📋 Copy</button>
+                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyNegativePromptToClipboard(${image.id})">📋 Copy</button>
                                     <button class="detail-edit-btn" onclick="editDetailField(${image.id}, 'negative_prompt')">✏️ Edit</button>
                                 </div>
                             </div>
@@ -4535,7 +4559,7 @@
                                     <div class="detail-meta-label">Model</div>
                                     <div class="detail-field-editable">
                                         <div class="detail-field-view" id="model_view_${image.id}">
-                                            <div class="detail-meta-value clickable-meta" onclick="copyToClipboard('${String(image.model || '').replace(/'/g, "\\'")}', 'Model')">${escapeHtml(image.model || '?')}</div>
+                                            <div class="detail-meta-value clickable-meta" onclick="copyModelToClipboard(${image.id})">${escapeHtml(image.model || '?')}</div>
                                         </div>
                                         <div class="detail-field-edit" id="model_edit_${image.id}">
                                             <input type="text" class="detail-meta-value-edit" id="model_input_${image.id}" value="${escapeHtmlAttr(image.model || '')}">
@@ -4546,7 +4570,7 @@
                                     <div class="detail-meta-label">Seed</div>
                                     <div class="detail-field-editable">
                                         <div class="detail-field-view" id="seed_view_${image.id}">
-                                            <div class="detail-meta-value clickable-meta" onclick="copyToClipboard('${String(image.seed || '').replace(/'/g, "\\'")}', 'Seed')">${escapeHtml(image.seed || '?')}</div>
+                                            <div class="detail-meta-value clickable-meta" onclick="copySeedToClipboard(${image.id})">${escapeHtml(image.seed || '?')}</div>
                                         </div>
                                         <div class="detail-field-edit" id="seed_edit_${image.id}">
                                             <input type="text" class="detail-meta-value-edit" id="seed_input_${image.id}" value="${escapeHtmlAttr(image.seed || '')}">
