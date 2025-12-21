@@ -901,6 +901,87 @@
             margin-top: 30px;
         }
 
+        /* Permission Banner */
+        .permission-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 40px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            z-index: 3000;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+        }
+
+        .permission-banner.show {
+            display: flex;
+        }
+
+        .permission-banner-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 3001;
+            pointer-events: auto;
+        }
+
+        .permission-banner-icon {
+            font-size: 24px;
+        }
+
+        .permission-banner-text {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .permission-banner-text strong {
+            color: var(--accent);
+        }
+
+        .permission-banner-actions {
+            display: flex;
+            gap: 12px;
+            position: relative;
+            z-index: 3001;
+        }
+
+        .permission-banner-actions .btn {
+            position: relative;
+            z-index: 3002;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 768px) {
+            .permission-banner {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px 20px;
+            }
+
+            .permission-banner-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .permission-banner-actions {
+                width: 100%;
+            }
+
+            .permission-banner-actions .btn {
+                flex: 1;
+            }
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -1373,6 +1454,20 @@
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
+    <!-- Permission Banner -->
+    <div id="permissionBanner" class="permission-banner">
+        <div class="permission-banner-content">
+            <span class="permission-banner-icon">🔓</span>
+            <div class="permission-banner-text">
+                <strong>Auto-Open Permission Needed:</strong> Click to grant permission to auto-load your database from the saved directory.
+            </div>
+        </div>
+        <div class="permission-banner-actions">
+            <button class="btn" onclick="quickGrantPermission()">🔓 Grant Permission</button>
+            <button class="btn btn-secondary" onclick="hidePermissionBanner()">✕ Dismiss</button>
+        </div>
+    </div>
+
     <!-- Full Screen Detail View -->
     <div id="detailView" class="detail-view">
         <div class="detail-header">
@@ -1454,10 +1549,24 @@
                 
                 const dirHandleRequest = store.get('directoryHandle');
                 dirHandleRequest.onsuccess = () => {
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'loadSavedHandles:dirHandle',message:'directoryHandle onsuccess',data:{hasResult:!!dirHandleRequest.result,db:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+                    // #endregion
                     if (dirHandleRequest.result) {
                         savedDirectoryHandle = dirHandleRequest.result;
+                        // #region agent log
+                        fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'loadSavedHandles:before-tryAutoOpen',message:'about to call tryAutoOpenDB',data:{savedDirectoryHandle:!!savedDirectoryHandle,db:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+                        // #endregion
                         // Try auto-opening PromptDB.sqlite
-                        tryAutoOpenDB();
+                        tryAutoOpenDB().then(() => {
+                            // After trying auto-open, check if we need to show permission banner
+                            checkAndShowPermissionBanner();
+                        });
+                    } else {
+                        // #region agent log
+                        fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'loadSavedHandles:no-dirHandle',message:'no directory handle in IndexedDB',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+                        // #endregion
+                        hidePermissionBanner();
                     }
                 };
             } catch (e) {
@@ -1520,27 +1629,43 @@
 
         // Try to auto-open PromptDB.sqlite from saved directory
         async function tryAutoOpenDB() {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:1531',message:'tryAutoOpenDB entry',data:{hasSavedDirectoryHandle:!!savedDirectoryHandle,hasDb:!!db,queryPermission:!!(savedDirectoryHandle&&savedDirectoryHandle.queryPermission)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+            // #endregion
             if (!savedDirectoryHandle || db) {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:1535',message:'early return',data:{hasSavedDirectoryHandle:!!savedDirectoryHandle,hasDb:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+                // #endregion
                 return; // Already have DB or no directory handle
             }
             
             try {
-                // Check permission before accessing the directory
+                // Check permission status first, but try direct access even if status is "prompt"
+                // Some browsers may allow access if the handle is still valid from a previous session
+                let permissionStatus = null;
                 if (savedDirectoryHandle.queryPermission) {
-                    const permissionStatus = await savedDirectoryHandle.queryPermission({ mode: 'readwrite' });
-                    if (permissionStatus !== 'granted') {
-                        // Request permission if not granted
-                        const newPermissionStatus = await savedDirectoryHandle.requestPermission({ mode: 'readwrite' });
-                        if (newPermissionStatus !== 'granted') {
-                            // Permission denied - can't auto-open
-                            return;
-                        }
+                    permissionStatus = await savedDirectoryHandle.queryPermission({ mode: 'readwrite' });
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:permission-check',message:'permission status check',data:{permissionStatus},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'K'})}).catch(()=>{});
+                    // #endregion
+                    // If permission is explicitly "denied", don't try (will definitely fail)
+                    if (permissionStatus === 'denied') {
+                        // #region agent log
+                        fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:permission-denied',message:'permission denied, skipping auto-open',data:{permissionStatus},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'K'})}).catch(()=>{});
+                        // #endregion
+                        return;
                     }
+                    // If "prompt", try anyway - handle might still be valid from previous session
+                    // If "granted", proceed normally
                 }
                 
-                // Check if PromptDB.sqlite exists in the directory
+                // Try to access the file handle directly
+                // This may work even if permission status is "prompt" if the handle is still valid
                 const fileHandle = await savedDirectoryHandle.getFileHandle('PromptDB.sqlite');
                 const file = await fileHandle.getFile();
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:file-retrieved',message:'fileHandle retrieved successfully',data:{fileSize:file.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'I'})}).catch(()=>{});
+                // #endregion
                 
                 // Import the database
                 await initSQL();
@@ -1583,11 +1708,114 @@
                 loadFolders();
                 loadImages();
                 
+                // Hide permission banner since auto-open succeeded
+                hidePermissionBanner();
+                
                 // Start auto-save if enabled
                 startAutoSave();
             } catch (e) {
-                // File doesn't exist or error - silently fail
-                console.log('Auto-open failed (expected if file doesn\'t exist):', e.message);
+                // File doesn't exist or permission error - silently fail
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:catch',message:'auto-open failed',data:{errorName:e.name,errorMessage:e.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
+                // #endregion
+                // Note: Auto-open may fail if:
+                // 1. File doesn't exist in the directory
+                // 2. Permission was not granted or has expired (browser restarts can clear permissions)
+                // 3. Directory handle is no longer valid
+                if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+                    // Permission issue - check if we should show the permission banner
+                    checkAndShowPermissionBanner();
+                } else {
+                    console.log('Auto-open failed (expected if file doesn\'t exist):', e.message);
+                }
+            }
+        }
+
+        // Check permission status and show banner if needed
+        async function checkAndShowPermissionBanner() {
+            if (!savedDirectoryHandle || db) {
+                // No directory handle or database already loaded - hide banner
+                hidePermissionBanner();
+                return;
+            }
+
+            // Check permission status
+            if (savedDirectoryHandle.queryPermission) {
+                try {
+                    const permissionStatus = await savedDirectoryHandle.queryPermission({ mode: 'readwrite' });
+                    if (permissionStatus === 'prompt' || permissionStatus === 'denied') {
+                        // Permission needed - show banner
+                        showPermissionBanner();
+                    } else {
+                        // Permission granted - hide banner
+                        hidePermissionBanner();
+                    }
+                } catch (e) {
+                    // Error checking permission - assume we need to show banner
+                    showPermissionBanner();
+                }
+            } else {
+                // Can't check permission - hide banner (will try direct access)
+                hidePermissionBanner();
+            }
+        }
+
+        // Show permission banner
+        function showPermissionBanner() {
+            const banner = document.getElementById('permissionBanner');
+            if (banner) {
+                banner.classList.add('show');
+            }
+        }
+
+        // Hide permission banner
+        function hidePermissionBanner() {
+            const banner = document.getElementById('permissionBanner');
+            if (banner) {
+                banner.classList.remove('show');
+            }
+        }
+
+        // Quick grant permission (re-request on existing handle)
+        async function quickGrantPermission() {
+            if (!savedDirectoryHandle) {
+                showToast('No directory handle found. Please grant permission via Settings.', 'error');
+                return;
+            }
+
+            try {
+                // Request permission on the existing handle
+                if (savedDirectoryHandle.requestPermission) {
+                    const permissionStatus = await savedDirectoryHandle.requestPermission({ mode: 'readwrite' });
+                    if (permissionStatus === 'granted') {
+                        // Permission granted - try auto-open
+                        hidePermissionBanner();
+                        await tryAutoOpenDB();
+                        showToast('Permission granted! Database auto-loaded.', 'success');
+                    } else {
+                        showToast('Permission denied. Please try again.', 'error');
+                    }
+                } else {
+                    // Fallback: use directory picker
+                    if ('showDirectoryPicker' in window) {
+                        const directoryHandle = await window.showDirectoryPicker({
+                            mode: 'readwrite'
+                        });
+                        await saveDirectoryHandle(directoryHandle);
+                        hidePermissionBanner();
+                        await tryAutoOpenDB();
+                        showToast('Permission granted! Database auto-loaded.', 'success');
+                    } else {
+                        showToast('Directory picker not supported in this browser.', 'error');
+                    }
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    // User cancelled
+                    return;
+                }
+                console.error('Error granting permission:', error);
+                showToast('Error granting permission: ' + error.message, 'error');
             }
         }
 
@@ -2433,6 +2661,11 @@
             
             addImageFormHTML = html; // Store for restoration
             showModal('Add Image', html);
+            // Hide the save database button for Add Image modal (there's already a Save Image button at bottom)
+            const modalSaveBtn = document.getElementById('modalSaveBtn');
+            if (modalSaveBtn) {
+                modalSaveBtn.style.display = 'none';
+            }
             renderTagCategories();
         }
 
@@ -4771,6 +5004,9 @@
                 // Save directory handle
                 await saveDirectoryHandle(directoryHandle);
                 
+                // Hide permission banner if it was showing
+                hidePermissionBanner();
+                
                 // Try to auto-open PromptDB.sqlite if it exists
                 await tryAutoOpenDB();
                 
@@ -4919,6 +5155,8 @@
             try {
                 await initSettingsDB();
                 await loadSavedHandles();
+                // Check permission status after loading handles
+                setTimeout(() => checkAndShowPermissionBanner(), 500);
             } catch (e) {
                 console.warn('Failed to initialize settings:', e);
             }

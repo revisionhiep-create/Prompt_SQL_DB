@@ -3,7 +3,7 @@
 A powerful, single-file HTML application for managing AI image generation prompts with SQLite database storage. Automatically extracts metadata from images, organizes with tags and categories, and provides a beautiful interface for browsing and managing your AI art collection.
 
 ![GitHub](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.1-green.svg)
+![Version](https://img.shields.io/badge/version-1.1.2-green.svg)
 
 ## 🎯 Overview
 
@@ -47,6 +47,8 @@ A powerful, single-file HTML application for managing AI image generation prompt
 - **Auto-Save** (ChromeEdge Edition) - Automatically saves database every 60 seconds (configurable)
 - **Quick Save** (ChromeEdge Edition) - One-click save to last opened file
 - **Auto-Open** (ChromeEdge Edition) - Automatically opens database on startup
+  - Permission banner for easy re-granting after browser restarts
+  - Remembers folder location - one-click permission grant
 - **Save on Close** (ChromeEdge Edition) - Attempts to save when closing the page
 - **Save Indicator** - Visual indicator showing database state
 - **Performance** - Optimized for large collections (1000+ images)
@@ -81,7 +83,8 @@ A powerful, single-file HTML application for managing AI image generation prompt
 **Use `Prompt SQL DB ChromeEdge Edition.html` if you're using Chrome or Edge:**
 - ✅ Auto-save every 60 seconds (configurable)
 - ✅ Quick Save button (saves to last opened file)
-- ✅ Auto-open database on startup
+- ✅ Auto-open database on startup with permission banner
+- ✅ Permission banner for easy re-granting after browser restarts
 - ✅ Save on page close
 - ✅ Smart saving option (only save when changes detected)
 - ✅ Directory permission management
@@ -107,7 +110,10 @@ A powerful, single-file HTML application for managing AI image generation prompt
    - Click "💾 Export DB" button to save your database to a file
    - All changes are saved in memory, but you need to export to save to a file
    - Choose a location and save as `PromptDB.sqlite`
-   - **ChromeEdge Edition:** Auto-save saves automatically every 60 seconds after first export
+   - **ChromeEdge Edition:** 
+     - Auto-save saves automatically every 60 seconds after first export
+     - For auto-open: Grant directory permission via Settings (⚙️) → "Grant Directory Permission for Auto-Open"
+     - After browser restart, use the permission banner at the bottom of the page to re-grant permission with one click
 
 4. **Import Existing Database** (Optional)
    - Click "📥 Import DB" button
@@ -198,7 +204,14 @@ A powerful, single-file HTML application for managing AI image generation prompt
 
 **Note:** All changes are saved in memory immediately. Export to save to a file.
 
-**ChromeEdge Edition Users:** Auto-save is enabled by default (saves every 60 seconds). You can configure this in Settings (⚙️ button). Quick Save (⚡) button appears after first export.
+**ChromeEdge Edition Users:** 
+- Auto-save is enabled by default (saves every 60 seconds). You can configure this in Settings (⚙️ button).
+- Quick Save (⚡) button appears after first export.
+- **Auto-Open Setup:** 
+  1. Grant directory permission via Settings (⚙️) → "Grant Directory Permission for Auto-Open"
+  2. Select the directory containing your `PromptDB.sqlite` file
+  3. The app will automatically open your database on startup within the same browser session
+  4. **After browser restart:** A permission banner will appear at the bottom of the page - click "🔓 Grant Permission" to re-grant access (folder location is remembered, no need to select again)
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -276,10 +289,12 @@ CREATE TABLE folders (
 - ✅ **Chrome/Edge** - Full support with advanced features:
   - Auto-save with configurable interval
   - Quick Save to last opened file
-  - Auto-open database on startup
+  - Auto-open database on startup (within browser sessions)
+  - Permission banner for easy re-granting after browser restarts
   - Directory permission management
   - Save on page close
 - ⚠️ **Firefox/Safari** - Core features work, but advanced file management features require Chrome/Edge
+- **Note on Auto-Open:** Permissions are session-scoped by browsers for security. Auto-open works within a browser session, but requires re-granting permission after browser restarts (one-click via permission banner)
 
 ## 🔍 Supported Metadata Formats
 
@@ -322,6 +337,12 @@ CREATE TABLE folders (
 - Use list view instead of grid view
 - Use folders to organize large collections
 - Use tag filters to narrow down results
+
+**Auto-open not working after browser restart?**
+- This is expected browser security behavior - permissions are session-scoped
+- A permission banner will appear at the bottom of the page
+- Click "🔓 Grant Permission" to re-grant access (folder location is remembered)
+- Or grant permission via Settings (⚙️) → "Grant Directory Permission for Auto-Open"
 
 ## 📄 License
 
