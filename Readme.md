@@ -97,7 +97,6 @@ A powerful, single-file HTML application for managing AI image generation prompt
    - Click "🆕 Create New Database" on the start screen
    - Or click "➕ Add Image" - database will auto-create
 
->>>>>>> 97ee1f8 (Add ChromeEdge Edition with auto-save and advanced file management features)
 2. **Add Images**
    - Click "➕ Add Image" button
    - Select an image file (PNG, JPEG, or WebP)
