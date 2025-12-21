@@ -4493,6 +4493,8 @@
                         <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap;">
                             <button class="btn" onclick="copyPromptToClipboard(${image.id})">📋 Copy Prompt</button>
                             <button class="btn btn-secondary" onclick="copyAllMetadata(${image.id})">📋 Copy All Meta</button>
+                            <button class="btn btn-secondary" onclick="editImage(${image.id}); closeDetailView();">✏️ Edit Image</button>
+                            <button class="btn btn-secondary" onclick="showMoveImageModal(${image.id}); closeDetailView();">📁 Move to Folder</button>
                             <button class="btn btn-secondary" style="color: var(--error);" onclick="deleteImage(${image.id})">🗑️ Delete</button>
                         </div>
                     </div>
@@ -4652,14 +4654,6 @@
                                 `).join('') : '<div style="color: var(--text-muted);">No tags</div>'}
                             </div>
                             <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">Click tag to filter gallery</div>
-                        </div>
-
-                        <div class="detail-section">
-                            <div style="display: flex; gap: 12px;">
-                                <button class="btn" onclick="editImage(${image.id}); closeDetailView();">✏️ Edit Image</button>
-                                <button class="btn btn-secondary" onclick="showMoveImageModal(${image.id}); closeDetailView();">📁 Move to Folder</button>
-                                <button class="btn btn-secondary" onclick="deleteImage(${image.id})">🗑️ Delete</button>
-                            </div>
                         </div>
                     </div>
                 `;
