@@ -1,9 +1,9 @@
-# Prompt SQL DB (v1.3.3)
+# Prompt SQL DB (v1.3.4)
 
 A powerful, single-file HTML application for managing AI image generation prompts with SQLite database storage. Automatically extracts metadata from images, organizes with tags and categories, and provides a beautiful interface for browsing and managing your AI art collection.
 
 ![GitHub](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.3.3-green.svg)
+![Version](https://img.shields.io/badge/version-1.3.4-green.svg)
 
 ## 🎯 Overview
 
@@ -16,15 +16,16 @@ A powerful, single-file HTML application for managing AI image generation prompt
 - ✅ **SQLite Database** - Portable, exportable database files
 - ✅ **Metadata extraction** - Parses prompts from PNG/JPEG/WebP (including Flux/Civitai resources)
 - ✅ **Bulk Selection** - Select, move, tag, or delete multiple images at once
-- ✅ **Performance Optimized** - Handles thousands of images with virtualized cleanup and debounced search
+- ✅ **Compact View** - New resize controls (40-100%) for dense list browsing
+- ✅ **Smart Sorting** - Clickable headers in list view for easy organization
 - ✅ **Universal Compatibility** - Dedicated version for Firefox and Safari with full feature parity
 
-## 🚀 Latest Updates (v1.3.3)
+## 🚀 Latest Updates (v1.3.4)
 
-- **Universal Edition Parity**: The Firefox/Safari version now includes all UI features and the advanced "deep" parsing engine (Civitai, Flux, complex ComfyUI workflows).
-- **UI Cleanup**: Streamlined the detail view by removing redundant edit buttons; individual fields are now directly interactive.
-- **Improved Performance**: Faster grid rendering and more efficient memory management for large collections.
-- **Bug Fixes**: Restored missing modal fields and tag categories in the Universal version.
+- **Card Resize Controls**: Added resizing options (40%, 60%, 80%, 100%) for List View thumbnails, allowing for denser lists and faster scrolling through thousands of images.
+- **Sortable Headers**: List View headers (Filename, Model, Sampler, Size, Steps, CFG, Date) are now clickable to sort ascending or descending.
+- **Modification Tracking**: Database now tracks both creation and last edit dates, with new columns in List View.
+- **Improved Memory Management**: Persistent Object URL mapping for List View thumbnails to prevent flickering and reduce memory pressure.
 
 ## ✨ Features
 
@@ -71,7 +72,7 @@ A powerful, single-file HTML application for managing AI image generation prompt
 ### Installation
 
 1. **Download** the appropriate version:
-   - **`Prompt SQL DB ChromeEdge Edition v1.3.3.html`** - **Recommended**. Enhanced version with auto-save, sync folder, and advanced file management (Requires Chrome or Edge).
+   - **`Prompt SQL DB ChromeEdge Edition v1.3.4.html`** - **Recommended**. Enhanced version with auto-save, sync folder, and advanced file management (Requires Chrome or Edge).
    - **`Prompt_SQL_DB v1.3.3.html`** - **Universal version**. Works in Firefox, Safari, and other browsers. Uses manual import/export for database management.
 2. **Open** it in any modern web browser.
 3. **No installation required** - it's a single HTML file!
@@ -125,7 +126,8 @@ CREATE TABLE images (
     size TEXT,
     metadata_text TEXT,
     folder_id INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 -- ... plus tables for image_tags, custom_tags, custom_categories, and folders.
 ```
