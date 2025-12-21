@@ -3,7 +3,7 @@
 A powerful, single-file HTML application for managing AI image generation prompts with SQLite database storage. Automatically extracts metadata from images, organizes with tags and categories, and provides a beautiful interface for browsing and managing your AI art collection.
 
 ![GitHub](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0-green.svg)
+![Version](https://img.shields.io/badge/version-1.1-green.svg)
 
 ## 🎯 Overview
 
@@ -44,7 +44,10 @@ A powerful, single-file HTML application for managing AI image generation prompt
 ### 💾 Database Management
 - **SQLite Storage** - Single portable database file
 - **Export/Import** - Save and load databases easily
-- **Auto-Save** - All changes saved in memory immediately
+- **Auto-Save** (ChromeEdge Edition) - Automatically saves database every 60 seconds (configurable)
+- **Quick Save** (ChromeEdge Edition) - One-click save to last opened file
+- **Auto-Open** (ChromeEdge Edition) - Automatically opens database on startup
+- **Save on Close** (ChromeEdge Edition) - Attempts to save when closing the page
 - **Save Indicator** - Visual indicator showing database state
 - **Performance** - Optimized for large collections (1000+ images)
 
@@ -67,9 +70,26 @@ A powerful, single-file HTML application for managing AI image generation prompt
 
 ### Installation
 
-1. **Download** the `Prompt_SQL_DB.html` file
-2. **Open** it in any modern web browser (Chrome, Edge, Firefox, Safari)
+1. **Download** the appropriate version:
+   - **`Prompt_SQL_DB.html`** - Cross-browser version (works in Chrome, Edge, Firefox, Safari)
+   - **`Prompt SQL DB ChromeEdge Edition.html`** - Enhanced version with auto-save and advanced file management (Chrome/Edge only)
+2. **Open** it in any modern web browser
 3. **No installation required** - it's a single HTML file!
+
+### Which Version Should I Use?
+
+**Use `Prompt SQL DB ChromeEdge Edition.html` if you're using Chrome or Edge:**
+- ✅ Auto-save every 60 seconds (configurable)
+- ✅ Quick Save button (saves to last opened file)
+- ✅ Auto-open database on startup
+- ✅ Save on page close
+- ✅ Smart saving option (only save when changes detected)
+- ✅ Directory permission management
+
+**Use `Prompt_SQL_DB.html` if you're using Firefox, Safari, or want cross-browser compatibility:**
+- ✅ Works in all modern browsers
+- ✅ Standard file save/load functionality
+- ✅ All core features (metadata extraction, tags, folders, etc.)
 
 ### First Time Setup
 
@@ -77,6 +97,7 @@ A powerful, single-file HTML application for managing AI image generation prompt
    - Click "🆕 Create New Database" on the start screen
    - Or click "➕ Add Image" - database will auto-create
 
+>>>>>>> 97ee1f8 (Add ChromeEdge Edition with auto-save and advanced file management features)
 2. **Add Images**
    - Click "➕ Add Image" button
    - Select an image file (PNG, JPEG, or WebP)
@@ -172,6 +193,8 @@ A powerful, single-file HTML application for managing AI image generation prompt
 
 **Note:** All changes are saved in memory immediately. Export to save to a file.
 
+**ChromeEdge Edition Users:** Auto-save is enabled by default (saves every 60 seconds). You can configure this in Settings (⚙️ button). Quick Save (⚡) button appears after first export.
+
 ## ⌨️ Keyboard Shortcuts
 
 - **ESC** - Close category drawer or detail view
@@ -238,10 +261,20 @@ CREATE TABLE folders (
 
 ## 🌐 Browser Compatibility
 
+### Prompt_SQL_DB.html (Standard Version)
 - ✅ **Chrome/Edge** - Full support (File System Access API for export)
 - ✅ **Firefox** - Full support (download fallback for export)
 - ✅ **Safari** - Full support (download fallback for export)
 - ✅ **Opera** - Full support
+
+### Prompt SQL DB ChromeEdge Edition.html
+- ✅ **Chrome/Edge** - Full support with advanced features:
+  - Auto-save with configurable interval
+  - Quick Save to last opened file
+  - Auto-open database on startup
+  - Directory permission management
+  - Save on page close
+- ⚠️ **Firefox/Safari** - Core features work, but advanced file management features require Chrome/Edge
 
 ## 🔍 Supported Metadata Formats
 
