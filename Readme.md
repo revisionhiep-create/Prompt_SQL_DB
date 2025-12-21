@@ -103,7 +103,13 @@ A powerful, single-file HTML application for managing AI image generation prompt
    - Metadata will be automatically extracted
    - Add tags and organize as needed
 
-3. **Import Existing Database** (Optional)
+3. **Save Your Database** (Important!)
+   - Click "💾 Export DB" button to save your database to a file
+   - All changes are saved in memory, but you need to export to save to a file
+   - Choose a location and save as `PromptDB.sqlite`
+   - **ChromeEdge Edition:** Auto-save saves automatically every 60 seconds after first export
+
+4. **Import Existing Database** (Optional)
    - Click "📥 Import DB" button
    - Select your SQLite database file
    - All your images and tags will load
