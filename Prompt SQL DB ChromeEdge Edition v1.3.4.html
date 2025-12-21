@@ -5162,7 +5162,7 @@
             
             // Explicitly hide for certain modals
             const modalSaveBtn = document.getElementById('modalSaveBtn');
-            if (modalSaveBtn && (title === 'Add Image' || title === 'Edit Image' || title === 'Help & Instructions' || title === 'Move Image')) {
+            if (modalSaveBtn && (title === 'Add Image' || title === 'Edit Image' || title === 'Move Image' || title.includes('Help') || title.includes('Manage Folders') || title.includes('Category'))) {
                 modalSaveBtn.style.display = 'none';
             }
         }
