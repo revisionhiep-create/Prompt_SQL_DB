@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt SQL DB (ChromeEdge Edition v1.3.4) - AI Prompt Manager</title>
+    <title>Prompt SQL DB (ChromeEdge Edition v1.3.5) - AI Prompt Manager</title>
     <style>
         /* Modern CSS Variables with Glassmorphism Support */
         :root {
@@ -1794,23 +1794,14 @@
                 
                 const dirHandleRequest = store.get('directoryHandle');
                 dirHandleRequest.onsuccess = () => {
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'loadSavedHandles:dirHandle',message:'directoryHandle onsuccess',data:{hasResult:!!dirHandleRequest.result,db:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-                    // #endregion
                     if (dirHandleRequest.result) {
                         savedDirectoryHandle = dirHandleRequest.result;
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'loadSavedHandles:before-tryAutoOpen',message:'about to call tryAutoOpenDB',data:{savedDirectoryHandle:!!savedDirectoryHandle,db:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-                        // #endregion
                         // Try auto-opening PromptDB.sqlite
                         tryAutoOpenDB().then(() => {
                             // After trying auto-open, check if we need to show permission banner
                             checkAndShowPermissionBanner();
                         });
                     } else {
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'loadSavedHandles:no-dirHandle',message:'no directory handle in IndexedDB',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-                        // #endregion
                         hidePermissionBanner();
                     }
                 };
@@ -1874,13 +1865,7 @@
 
         // Try to auto-open PromptDB.sqlite from saved directory
         async function tryAutoOpenDB() {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:1531',message:'tryAutoOpenDB entry',data:{hasSavedDirectoryHandle:!!savedDirectoryHandle,hasDb:!!db,queryPermission:!!(savedDirectoryHandle&&savedDirectoryHandle.queryPermission)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-            // #endregion
             if (!savedDirectoryHandle || db) {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:1535',message:'early return',data:{hasSavedDirectoryHandle:!!savedDirectoryHandle,hasDb:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-                // #endregion
                 return; // Already have DB or no directory handle
             }
             
@@ -1890,14 +1875,8 @@
                 let permissionStatus = null;
                 if (savedDirectoryHandle.queryPermission) {
                     permissionStatus = await savedDirectoryHandle.queryPermission({ mode: 'readwrite' });
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:permission-check',message:'permission status check',data:{permissionStatus},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'K'})}).catch(()=>{});
-                    // #endregion
                     // If permission is explicitly "denied", don't try (will definitely fail)
                     if (permissionStatus === 'denied') {
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:permission-denied',message:'permission denied, skipping auto-open',data:{permissionStatus},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'K'})}).catch(()=>{});
-                        // #endregion
                         return;
                     }
                     // If "prompt", try anyway - handle might still be valid from previous session
@@ -1908,9 +1887,6 @@
                 // This may work even if permission status is "prompt" if the handle is still valid
                 const fileHandle = await savedDirectoryHandle.getFileHandle('PromptDB.sqlite');
                 const file = await fileHandle.getFile();
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:file-retrieved',message:'fileHandle retrieved successfully',data:{fileSize:file.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'I'})}).catch(()=>{});
-                // #endregion
                 
                 // Import the database
                 await initSQL();
@@ -1935,9 +1911,6 @@
                 startAutoSave();
             } catch (e) {
                 // File doesn't exist or permission error - silently fail
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/d9d7313e-d94f-47b5-a4dd-b776175ecbd1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'tryAutoOpenDB:catch',message:'auto-open failed',data:{errorName:e.name,errorMessage:e.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
-                // #endregion
                 // Note: Auto-open may fail if:
                 // 1. File doesn't exist in the directory
                 // 2. Permission was not granted or has expired (browser restarts can clear permissions)
@@ -2262,7 +2235,6 @@
             return SQL;
         }
 
-        // Run database migrations to ensure all columns exist
         // Run database migrations to ensure all columns exist
         function runMigrations() {
             if (!db) return;
@@ -5850,7 +5822,7 @@
         function showHelpModal() {
             const html = `
                 <div class="form-group">
-                    <h3 style="margin-bottom: 20px; color: var(--accent);">📚 Prompt SQL DB - v1.3.3 Guide</h3>
+                    <h3 style="margin-bottom: 20px; color: var(--accent);">📚 Prompt SQL DB - v1.3.5 Guide</h3>
                     
                     <div style="margin-bottom: 24px;">
                         <div class="detail-section-title" style="margin-bottom: 12px;">⌨️ Keyboard Shortcuts</div>
