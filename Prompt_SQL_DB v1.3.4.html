@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt SQL DB (Universal Edition v1.3.4) - AI Prompt Manager</title>
+    <title>Prompt SQL DB (Universal Edition v1.3.5) - AI Prompt Manager</title>
     <style>
         /* Modern CSS Variables with Glassmorphism Support */
         :root {
@@ -1554,127 +1554,90 @@
             return null;
         }
 
-        function parseComfy(json) {
-            let pos = "", neg = "", meta = {model: "?", size: "?", seed: "?", steps: "?", cfg: "?", sampler: "?"}, resources = [];
-            let nodes = [];
-            let nodeMap = {};
-            
-            if (json.nodes && Array.isArray(json.nodes)) {
-                nodes = json.nodes.map(n => {
-                    const node = {
-                        class_type: n.type || n.data?.class_type || "",
-                        inputs: n.inputs || n.data?.inputs || (n.widgets_values ? {} : {})
-                    };
-                    if (n.id !== undefined) nodeMap[n.id] = node;
-                    return node;
-                }).filter(n => n.class_type || n.inputs);
-            } else {
-                const vals = Object.values(json);
-                nodes = vals.filter(n => n && typeof n === 'object' && (n.class_type || n.inputs));
-                vals.forEach((n, i) => {
-                    if (n && typeof n === 'object' && (n.class_type || n.inputs)) {
-                        const key = Object.keys(json)[i];
-                        if (key && !isNaN(key)) nodeMap[key] = n;
-                    }
-                });
+        // --- ComfyUI Parsing Helpers ---
+        function findUpstreamText(l, json, nodeMap, d = 0) {
+            if (d > 10 || !l || !Array.isArray(l)) return "";
+            let n = null;
+            if (typeof l[0] === 'string' || typeof l[0] === 'number') {
+                n = json[l[0]] || nodeMap[l[0]];
+            } else if (typeof l[0] === 'object') {
+                n = l[0];
             }
-
-            const findUpstreamText = (l, d = 0) => {
-                if (d > 10 || !l || !Array.isArray(l)) return "";
-                let n = null;
-                if (typeof l[0] === 'string' || typeof l[0] === 'number') {
-                    n = json[l[0]] || nodeMap[l[0]];
-                } else if (typeof l[0] === 'object') {
-                    n = l[0];
-                }
-                if (!n) return "";
-                const inputs = n.inputs || {};
-                if (!inputs && !n.widgets_values) return "";
-                let t = "";
-                
-                if (Array.isArray(n.widgets_values) && n.widgets_values.length > 0 && typeof n.widgets_values[0] === 'string') {
-                    t += n.widgets_values[0];
-                }
-                if (typeof inputs.text === 'string') {
-                    t += (t ? ", " : "") + inputs.text;
-                } else if (Array.isArray(inputs.text)) {
-                    const r = findUpstreamText(inputs.text, d + 1);
-                    if (r) t += (t ? ", " : "") + r;
-                }
-                if (typeof inputs.text_g === 'string') t += (t ? ", " : "") + inputs.text_g;
-                if (typeof inputs.text_l === 'string') t += (t ? ", " : "") + inputs.text_l;
-                if (inputs.string_field) t += (t ? ", " : "") + inputs.string_field;
-                
-                for (const key in inputs) {
-                    if (key.startsWith('string_') || key.startsWith('str_') || key.includes('text') || key.includes('prompt')) {
-                        const val = inputs[key];
-                        if (typeof val === 'string' && val.length > 0) {
-                            if (key !== 'delimiter' || val.length > 1) t += (t ? "" : "") + val;
-                        } else if (Array.isArray(val) && val.length > 0) {
-                            const r = findUpstreamText(val, d + 1);
-                            if (r) t += (t ? ", " : "") + r;
-                        }
-                    }
-                }
-                
-                if (inputs.trigger_words_display && Array.isArray(inputs.trigger_words_display.__value__)) {
-                    const tags = inputs.trigger_words_display.__value__.filter(x => x.active).map(x => x.text).join(", ");
-                    if (tags) t += (t ? ", " : "") + tags;
-                }
-                
-                const keys = ['positive', 'negative', 'conditioning', 'clip', 'prompt', 'trigger_words'];
-                for (const k of keys) {
-                    if (inputs[k]) {
-                        const r = findUpstreamText(inputs[k], d + 1);
+            if (!n) return "";
+            const inputs = n.inputs || {};
+            if (!inputs && !n.widgets_values) return "";
+            let t = "";
+            
+            if (Array.isArray(n.widgets_values) && n.widgets_values.length > 0 && typeof n.widgets_values[0] === 'string') {
+                t += n.widgets_values[0];
+            }
+            if (typeof inputs.text === 'string') {
+                t += (t ? ", " : "") + inputs.text;
+            } else if (Array.isArray(inputs.text)) {
+                const r = findUpstreamText(inputs.text, json, nodeMap, d + 1);
+                if (r) t += (t ? ", " : "") + r;
+            }
+            if (typeof inputs.text_g === 'string') t += (t ? ", " : "") + inputs.text_g;
+            if (typeof inputs.text_l === 'string') t += (t ? ", " : "") + inputs.text_l;
+            if (inputs.string_field) t += (t ? ", " : "") + inputs.string_field;
+            
+            for (const key in inputs) {
+                if (key.startsWith('string_') || key.startsWith('str_') || key.includes('text') || key.includes('prompt')) {
+                    const val = inputs[key];
+                    if (typeof val === 'string' && val.length > 0) {
+                        if (key !== 'delimiter' || val.length > 1) t += (t ? "" : "") + val;
+                    } else if (Array.isArray(val) && val.length > 0) {
+                        const r = findUpstreamText(val, json, nodeMap, d + 1);
                         if (r) t += (t ? ", " : "") + r;
                     }
                 }
-                
-                if (!t) {
-                    for (const key in inputs) {
-                        const val = inputs[key];
-                        if (Array.isArray(val) && val.length > 0 && (typeof val[0] === 'string' || typeof val[0] === 'number')) {
-                            const r = findUpstreamText(val, d + 1);
-                            if (r) { t = r; break; }
-                        }
+            }
+            
+            if (inputs.trigger_words_display && Array.isArray(inputs.trigger_words_display.__value__)) {
+                const tags = inputs.trigger_words_display.__value__.filter(x => x.active).map(x => x.text).join(", ");
+                if (tags) t += (t ? ", " : "") + tags;
+            }
+            
+            const keys = ['positive', 'negative', 'conditioning', 'clip', 'prompt', 'trigger_words'];
+            for (const k of keys) {
+                if (inputs[k]) {
+                    const r = findUpstreamText(inputs[k], json, nodeMap, d + 1);
+                    if (r) t += (t ? ", " : "") + r;
+                }
+            }
+            
+            if (!t) {
+                for (const key in inputs) {
+                    const val = inputs[key];
+                    if (Array.isArray(val) && val.length > 0 && (typeof val[0] === 'string' || typeof val[0] === 'number')) {
+                        const r = findUpstreamText(val, json, nodeMap, d + 1);
+                        if (r) { t = r; break; }
                     }
                 }
-                return t;
-            };
-
-            const findUpstreamModel = (l, d = 0) => {
-                if (d > 10 || !l || !Array.isArray(l)) return "";
-                let n = null;
-                if (typeof l[0] === 'string' || typeof l[0] === 'number') {
-                    n = json[l[0]] || nodeMap[l[0]];
-                } else if (typeof l[0] === 'object') {
-                    n = l[0];
-                }
-                if (!n) return "";
-                const inputs = n.inputs || {};
-                if (inputs.ckpt_name) return inputs.ckpt_name;
-                if (inputs.unet_name) return inputs.unet_name;
-                if (inputs.checkpoint_name) return inputs.checkpoint_name;
-                if (inputs.model_name) return inputs.model_name;
-                if (inputs.model) return findUpstreamModel(inputs.model, d + 1);
-                return "";
-            };
-
-            const samplerTypes = ["KSampler", "KSamplerAdvanced", "SamplerCustom", "SamplerEulerAncestralCFGPP", "SamplerLCM"];
-            const ksampler = nodes.find(n => n.class_type && samplerTypes.some(type => n.class_type.includes(type)));
-            
-            if (ksampler) {
-                const inputs = ksampler.inputs || {};
-                meta.seed = inputs.seed || inputs.noise_seed || "?";
-                meta.steps = inputs.steps || "?";
-                meta.cfg = inputs.cfg || "?";
-                meta.sampler = inputs.sampler_name || ksampler.class_type || "?";
-                if (inputs.scheduler) meta.sampler += " " + inputs.scheduler;
-                if (inputs.positive) pos = findUpstreamText(inputs.positive);
-                if (inputs.negative) neg = findUpstreamText(inputs.negative);
-                if (inputs.model) meta.model = findUpstreamModel(inputs.model).replace(/\.(safetensors|ckpt)$/, "");
             }
+            return t;
+        }
 
+        function findUpstreamModel(l, json, nodeMap, d = 0) {
+            if (d > 10 || !l || !Array.isArray(l)) return "";
+            let n = null;
+            if (typeof l[0] === 'string' || typeof l[0] === 'number') {
+                n = json[l[0]] || nodeMap[l[0]];
+            } else if (typeof l[0] === 'object') {
+                n = l[0];
+            }
+            if (!n) return "";
+            const inputs = n.inputs || {};
+            if (inputs.ckpt_name) return inputs.ckpt_name;
+            if (inputs.unet_name) return inputs.unet_name;
+            if (inputs.checkpoint_name) return inputs.checkpoint_name;
+            if (inputs.model_name) return inputs.model_name;
+            if (inputs.model) return findUpstreamModel(inputs.model, json, nodeMap, d + 1);
+            return "";
+        }
+
+        function extractComfyResources(nodes) {
+            const resources = [];
             nodes.forEach(n => {
                 const nodeType = n.class_type || "";
                 const inputs = n.inputs || {};
@@ -1700,13 +1663,61 @@
                     resources.push({type: 'IP-Adapter', name: inputs.ipadapter_file, str: inputs.weight || "1.0"});
                 }
             });
+            return resources;
+        }
 
+        function extractComfySize(nodes) {
             const sizeNodes = ["EmptyLatentImage", "LatentUpscale", "LatentComposite", "EmptySD3LatentImage"];
             const sizeNode = nodes.find(n => sizeNodes.includes(n.class_type));
             if (sizeNode) {
                 const inputs = sizeNode.inputs || {};
-                if (inputs.width && inputs.height) meta.size = `${inputs.width}x${inputs.height}`;
+                if (inputs.width && inputs.height) return `${inputs.width}x${inputs.height}`;
             }
+            return "?";
+        }
+
+        function parseComfy(json) {
+            let pos = "", neg = "", meta = {model: "?", size: "?", seed: "?", steps: "?", cfg: "?", sampler: "?"}, resources = [];
+            let nodes = [];
+            let nodeMap = {};
+            
+            if (json.nodes && Array.isArray(json.nodes)) {
+                nodes = json.nodes.map(n => {
+                    const node = {
+                        class_type: n.type || n.data?.class_type || "",
+                        inputs: n.inputs || n.data?.inputs || (n.widgets_values ? {} : {})
+                    };
+                    if (n.id !== undefined) nodeMap[n.id] = node;
+                    return node;
+                }).filter(n => n.class_type || n.inputs);
+            } else {
+                const vals = Object.values(json);
+                nodes = vals.filter(n => n && typeof n === 'object' && (n.class_type || n.inputs));
+                vals.forEach((n, i) => {
+                    if (n && typeof n === 'object' && (n.class_type || n.inputs)) {
+                        const key = Object.keys(json)[i];
+                        if (key && !isNaN(key)) nodeMap[key] = n;
+                    }
+                });
+            }
+
+            const samplerTypes = ["KSampler", "KSamplerAdvanced", "SamplerCustom", "SamplerEulerAncestralCFGPP", "SamplerLCM"];
+            const ksampler = nodes.find(n => n.class_type && samplerTypes.some(type => n.class_type.includes(type)));
+            
+            if (ksampler) {
+                const inputs = ksampler.inputs || {};
+                meta.seed = inputs.seed || inputs.noise_seed || "?";
+                meta.steps = inputs.steps || "?";
+                meta.cfg = inputs.cfg || "?";
+                meta.sampler = inputs.sampler_name || ksampler.class_type || "?";
+                if (inputs.scheduler) meta.sampler += " " + inputs.scheduler;
+                if (inputs.positive) pos = findUpstreamText(inputs.positive, json, nodeMap);
+                if (inputs.negative) neg = findUpstreamText(inputs.negative, json, nodeMap);
+                if (inputs.model) meta.model = findUpstreamModel(inputs.model, json, nodeMap).replace(/\.(safetensors|ckpt)$/, "");
+            }
+
+            resources = extractComfyResources(nodes);
+            meta.size = extractComfySize(nodes);
             
             return {pos, neg, meta, resources};
         }
@@ -1996,11 +2007,40 @@
         // --- Database & Files ---
         async function exportDatabase() {
             if (!db) return showToast('No database to export', 'error');
+            
+            // Try modern File System Access API for "Save As" behavior
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'PromptDB.sqlite',
+                        types: [{
+                            description: 'SQLite Database',
+                            accept: { 'application/x-sqlite3': ['.sqlite', '.db'] }
+                        }]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(db.export());
+                    await writable.close();
+                    markSaved();
+                    showToast('Database saved successfully!', 'success');
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                    console.error('File Picker Error:', err);
+                    // Fallback to traditional download below
+                }
+            }
+
+            // Fallback for Firefox/Safari or if Picker fails/rejected
             try {
                 const blob = new Blob([db.export()], { type: 'application/x-sqlite3' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = 'PromptDB.sqlite'; a.click();
+                a.href = url;
+                a.download = 'PromptDB.sqlite';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 markSaved();
                 showToast('Database exported!', 'success');
@@ -2439,87 +2479,87 @@
                         <div class="detail-section-title">📋 File Information</div>
                         <div class="detail-meta-value" style="font-family: monospace; word-break: break-all;">${img.filename}</div>
                     </div>
-                        <div class="detail-section">
-                            <div class="detail-section-title">
-                                <span>✨ Positive Prompt</span>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyPromptToClipboard(${img.id})">📋 Copy</button>
-                                    <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'positive_prompt')">✏️ Edit</button>
-                                </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">
+                            <span>✨ Positive Prompt</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="detail-edit-btn" style="background: var(--success);" onclick="copyPromptToClipboard(${img.id})">📋 Copy</button>
+                                <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'positive_prompt')">✏️ Edit</button>
                             </div>
-                            <div class="detail-field-editable">
-                                <div class="detail-field-view" id="positive_prompt_view_${img.id}">
+                        </div>
+                        <div class="detail-field-editable">
+                            <div class="detail-field-view" id="positive_prompt_view_${img.id}">
                                     <div class="detail-prompt clickable-meta" onclick="copyPromptToClipboard(${img.id})">${escapeHtml(img.positive_prompt || 'None')}</div>
-                                </div>
-                                <div class="detail-field-edit" id="positive_prompt_edit_${img.id}" style="display:none;">
-                                    <textarea class="detail-prompt-edit" id="positive_prompt_input_${img.id}">${String(img.positive_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
-                                    <div class="form-actions" style="margin-top: 10px;">
-                                        <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'positive_prompt')">✖️ Cancel</button>
-                                        <button class="btn" onclick="saveDetailField(${img.id}, 'positive_prompt')">💾 Save</button>
-                                    </div>
+                            </div>
+                            <div class="detail-field-edit" id="positive_prompt_edit_${img.id}" style="display:none;">
+                                <textarea class="detail-prompt-edit" id="positive_prompt_input_${img.id}">${String(img.positive_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                <div class="form-actions" style="margin-top: 10px;">
+                                    <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'positive_prompt')">✖️ Cancel</button>
+                                    <button class="btn" onclick="saveDetailField(${img.id}, 'positive_prompt')">💾 Save</button>
                                 </div>
                             </div>
                         </div>
-                        <div class="detail-section">
-                            <div class="detail-section-title">
-                                <span>🚫 Negative Prompt</span>
-                                <div style="display: flex; gap: 8px;">
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">
+                            <span>🚫 Negative Prompt</span>
+                            <div style="display: flex; gap: 8px;">
                                     <button class="detail-edit-btn" style="background: var(--success);" onclick="copyNegativePromptToClipboard(${img.id})">📋 Copy</button>
-                                    <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'negative_prompt')">✏️ Edit</button>
-                                </div>
+                                <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'negative_prompt')">✏️ Edit</button>
                             </div>
-                            <div class="detail-field-editable">
-                                <div class="detail-field-view" id="negative_prompt_view_${img.id}">
+                        </div>
+                        <div class="detail-field-editable">
+                            <div class="detail-field-view" id="negative_prompt_view_${img.id}">
                                     <div class="detail-prompt clickable-meta" style="color:var(--text-muted);" onclick="copyNegativePromptToClipboard(${img.id})">${escapeHtml(img.negative_prompt || 'None')}</div>
-                                </div>
-                                <div class="detail-field-edit" id="negative_prompt_edit_${img.id}" style="display:none;">
-                                    <textarea class="detail-prompt-edit" id="negative_prompt_input_${img.id}">${String(img.negative_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
-                                    <div class="form-actions" style="margin-top: 10px;">
-                                        <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'negative_prompt')">✖️ Cancel</button>
-                                        <button class="btn" onclick="saveDetailField(${img.id}, 'negative_prompt')">💾 Save</button>
-                                    </div>
+                            </div>
+                            <div class="detail-field-edit" id="negative_prompt_edit_${img.id}" style="display:none;">
+                                <textarea class="detail-prompt-edit" id="negative_prompt_input_${img.id}">${String(img.negative_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                <div class="form-actions" style="margin-top: 10px;">
+                                    <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'negative_prompt')">✖️ Cancel</button>
+                                    <button class="btn" onclick="saveDetailField(${img.id}, 'negative_prompt')">💾 Save</button>
                                 </div>
                             </div>
                         </div>
-                        <div class="detail-section">
-                            <div class="detail-section-title">
-                                <span>⚙️ Generation Parameters</span>
-                                <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'params')">✏️ Edit All</button>
-                            </div>
-                            <div class="detail-meta-grid">
-                                <div class="detail-meta-item">
-                                    <div class="detail-meta-label">Model</div>
-                                    <div class="detail-field-editable">
-                                        <div class="detail-field-view" id="model_view_${img.id}">
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">
+                            <span>⚙️ Generation Parameters</span>
+                            <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'params')">✏️ Edit All</button>
+                        </div>
+                        <div class="detail-meta-grid">
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Model</div>
+                                <div class="detail-field-editable">
+                                    <div class="detail-field-view" id="model_view_${img.id}">
                                             <div class="detail-meta-value clickable-meta" onclick="copyModelToClipboard(${img.id})">${escapeHtml(img.model || '?')}</div>
-                                        </div>
-                                        <div class="detail-field-edit" id="model_edit_${img.id}" style="display:none;">
-                                            <input type="text" class="detail-meta-value-edit" id="model_input_${img.id}" value="${escapeHtmlAttr(img.model || '')}">
-                                        </div>
+                                    </div>
+                                    <div class="detail-field-edit" id="model_edit_${img.id}" style="display:none;">
+                                        <input type="text" class="detail-meta-value-edit" id="model_input_${img.id}" value="${escapeHtmlAttr(img.model || '')}">
                                     </div>
                                 </div>
-                                <div class="detail-meta-item">
-                                    <div class="detail-meta-label">Sampler</div>
-                                    <div class="detail-field-editable">
-                                        <div class="detail-field-view" id="sampler_view_${img.id}">
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Sampler</div>
+                                <div class="detail-field-editable">
+                                    <div class="detail-field-view" id="sampler_view_${img.id}">
                                             <div class="detail-meta-value">${escapeHtml(img.sampler || '?')}</div>
-                                        </div>
-                                        <div class="detail-field-edit" id="sampler_edit_${img.id}" style="display:none;">
-                                            <input type="text" class="detail-meta-value-edit" id="sampler_input_${img.id}" value="${escapeHtmlAttr(img.sampler || '')}">
-                                        </div>
+                                    </div>
+                                    <div class="detail-field-edit" id="sampler_edit_${img.id}" style="display:none;">
+                                        <input type="text" class="detail-meta-value-edit" id="sampler_input_${img.id}" value="${escapeHtmlAttr(img.sampler || '')}">
                                     </div>
                                 </div>
-                                <div class="detail-meta-item">
-                                    <div class="detail-meta-label">Seed</div>
-                                    <div class="detail-field-editable">
-                                        <div class="detail-field-view" id="seed_view_${img.id}">
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Seed</div>
+                                <div class="detail-field-editable">
+                                    <div class="detail-field-view" id="seed_view_${img.id}">
                                             <div class="detail-meta-value clickable-meta" onclick="copySeedToClipboard(${img.id})">${escapeHtml(img.seed || '?')}</div>
-                                        </div>
-                                        <div class="detail-field-edit" id="seed_edit_${img.id}" style="display:none;">
-                                            <input type="text" class="detail-meta-value-edit" id="seed_input_${img.id}" value="${escapeHtmlAttr(img.seed || '')}">
-                                        </div>
+                                    </div>
+                                    <div class="detail-field-edit" id="seed_edit_${img.id}" style="display:none;">
+                                        <input type="text" class="detail-meta-value-edit" id="seed_input_${img.id}" value="${escapeHtmlAttr(img.seed || '')}">
                                     </div>
                                 </div>
+                            </div>
                             <div class="detail-meta-item">
                                 <div class="detail-meta-label">Steps</div>
                                 <div class="detail-field-editable">
@@ -2577,6 +2617,73 @@
             if (e && e.target !== e.currentTarget && e.target.id !== 'detailView' && e.target.id !== 'detailContent') return;
             document.getElementById('detailView').classList.remove('active'); 
             currentImageIndex = -1; 
+        }
+
+        // Helper to open the edit modal (as requested by user screenshot)
+        function editImage(id) {
+            if (!db) return;
+            const res = db.exec("SELECT * FROM images WHERE id = ?", [id]);
+            if (!res.length) return;
+            const img = {}; res[0].columns.forEach((c, i) => img[c] = res[0].values[0][i]);
+            
+            // Set state for tags
+            selectedTags.clear();
+            const tagsRes = db.exec("SELECT tag_name FROM image_tags WHERE image_id = ?", [id]);
+            if (tagsRes.length) tagsRes[0].values.forEach(r => selectedTags.add(r[0]));
+            
+            const url = imageObjectURLs.get(id);
+            const html = `
+                <div class="image-preview-container">
+                    <img id="imagePreview" src="${url}" class="detail-image" style="max-height: 300px; margin: 0 auto 20px; object-fit: contain;">
+                </div>
+                <form onsubmit="updateImage(${id}, event)">
+                    <div class="form-group">
+                        <label class="form-label">Positive Prompt</label>
+                        <textarea class="form-textarea" name="positivePrompt" id="positivePrompt" placeholder="Edit positive prompt...">${escapeHtml(img.positive_prompt)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Negative Prompt</label>
+                        <textarea class="form-textarea" name="negativePrompt" id="negativePrompt" placeholder="Edit negative prompt...">${escapeHtml(img.negative_prompt)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tags & Categories</label>
+                        <div class="tag-categories" id="tagCategoriesContainer"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn">💾 Update Image</button>
+                    </div>
+                </form>
+            `;
+            showModal('Edit Image', html);
+            renderTagCategories();
+        }
+
+        async function updateImage(id, e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const pos = fd.get('positivePrompt');
+            const neg = fd.get('negativePrompt');
+            
+            try {
+                db.run('BEGIN TRANSACTION');
+                db.run(`UPDATE images SET positive_prompt = ?, negative_prompt = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [pos, neg, id]);
+                
+                // Update tags
+                db.run("DELETE FROM image_tags WHERE image_id = ?", [id]);
+                selectedTags.forEach(tag => {
+                    db.run("INSERT INTO image_tags (image_id, tag_name, category) VALUES (?,?,?)", [id, tag, 'Other']);
+                });
+                
+                db.run('COMMIT');
+                showToast('Image updated successfully!', 'success');
+                markUnsaved();
+                closeModal();
+                loadImages();
+            } catch (err) {
+                db.run('ROLLBACK');
+                showToast('Update failed: ' + err.message, 'error');
+            }
         }
 
         // Edit detail field (toggle edit mode)
