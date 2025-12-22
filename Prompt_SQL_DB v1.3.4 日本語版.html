@@ -1,0 +1,3302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt SQL DB (Universal Edition v1.3.4) - AI プロンプト マネージャー</title>
+    <style>
+        /* Modern CSS Variables with Glassmorphism Support */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-tertiary: #1e1e2e;
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --bg-glass-hover: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #707080;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --accent-light: rgba(99, 102, 241, 0.2);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --blur: blur(20px);
+            --scale: 1.0;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f3f5;
+            --bg-glass: rgba(0, 0, 0, 0.03);
+            --bg-glass-hover: rgba(0, 0, 0, 0.06);
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a5a;
+            --text-muted: #8a8a9a;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --accent: #4f46e5;
+            --accent-hover: #6366f1;
+            --accent-light: rgba(79, 70, 229, 0.1);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: var(--bg-glass-hover);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        
+        .header h1 .brand-main {
+            color: var(--text-primary);
+        }
+        
+        .header h1 .brand-accent {
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .save-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .save-indicator.saved {
+            color: var(--success);
+        }
+
+        .save-indicator.unsaved {
+            color: var(--warning);
+        }
+
+        .save-indicator span:first-child {
+            font-size: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: var(--accent);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-glass-hover);
+        }
+
+        .btn-icon {
+            padding: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-light);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Side Drawer for Categories */
+        .category-drawer {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            z-index: 500;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .category-drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-toggle {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
+            border: none;
+            border-radius: 0 12px 12px 0;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 400;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drawer-toggle:hover {
+            background: var(--accent-hover);
+            transform: translateY(-50%) translateX(4px);
+        }
+
+        .drawer-toggle.open {
+            left: 320px;
+        }
+
+        /* Header Groups */
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            background: var(--bg-glass);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            gap: 4px;
+        }
+
+        /* Filter Chips */
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            min-height: 32px;
+        }
+
+        .filter-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--accent-hover);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .filter-chip .remove {
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+
+        /* Status Dot */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-dot.saved { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-dot.unsaved { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+
+        /* Bulk Action Bar */
+        .bulk-action-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1500;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .bulk-action-bar.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .bulk-count {
+            font-weight: 700;
+            color: var(--accent);
+            padding-right: 20px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* Card Hover Copy */
+        .card-copy-btn {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        .image-card:hover .card-copy-btn {
+            opacity: 1;
+        }
+
+        .card-copy-btn:hover {
+            background: var(--success);
+            transform: scale(1.1);
+        }
+
+        /* Selection Overlay */
+        .image-card.selected {
+            border: 3px solid var(--accent);
+            transform: scale(0.95);
+        }
+
+        .selection-indicator {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .image-card.selected .selection-indicator {
+            display: flex;
+        }
+
+        /* Clickable Tags in Detail */
+        .clickable-meta {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .clickable-meta:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .drawer-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .drawer-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .drawer-close:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .drawer-clear {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .drawer-clear:hover {
+            background: var(--warning);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .drawer-clear:active {
+            transform: scale(0.95);
+        }
+
+        .drawer-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 450;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer-backdrop.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.drawer-open {
+            margin-left: 0;
+        }
+
+        /* Tag Filter Bar - Now in drawer */
+        .tag-filter-bar {
+            padding: 0;
+        }
+
+        .tag-category-group {
+            margin-bottom: 16px;
+        }
+
+        .tag-category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        .tag-category-header:hover {
+            background: var(--bg-glass-hover);
+            border-color: var(--accent);
+        }
+
+        .tag-category-header.has-selected {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        .tag-category-icon {
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .tag-category-header.collapsed .tag-category-icon {
+            transform: rotate(-90deg);
+        }
+
+        .tag-category-expand {
+            margin-left: auto;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .tag-category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            padding-left: 8px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin-top 0.3s ease, padding-top 0.3s ease;
+        }
+
+        .tag-category-group.expanded .tag-category-tags {
+            max-height: 500px;
+            padding-top: 12px;
+        }
+
+        .tag-filter {
+            padding: 6px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .tag-filter:hover {
+            background: var(--bg-glass-hover);
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .tag-filter.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .category-manage-btn {
+            margin-left: auto;
+            padding: 4px 8px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        /* Image Grid */
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .images-grid.list-view {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .image-card {
+            position: relative;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            aspect-ratio: 1;
+        }
+
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* List View Styles */
+        .image-card.list-row {
+            display: grid;
+            grid-template-columns: calc(110px * var(--scale, 1)) 1fr 150px 150px 120px 80px 80px 120px 120px;
+            gap: 12px;
+            align-items: center;
+            padding: calc(12px * var(--scale, 1)) 16px;
+            aspect-ratio: unset;
+            height: auto;
+            min-height: calc(110px * var(--scale, 1));
+        }
+
+        .image-card.list-row img {
+            width: calc(110px * var(--scale, 1));
+            height: calc(110px * var(--scale, 1));
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .image-card.list-row .list-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .image-card.list-row .filename {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .image-card.list-row .list-cell {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            padding-right: 8px;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: calc(110px * var(--scale, 1)) 1fr 150px 150px 120px 80px 80px 120px 120px;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .list-header > div {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        .list-header > div:hover {
+            color: var(--accent);
+        }
+
+        .list-header > div.active-sort {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .list-header > div:first-child { text-align: center; cursor: default; }
+        .list-header > div:first-child:hover { color: var(--text-secondary); }
+
+        /* Scale Control */
+        .scale-control {
+            display: flex;
+            background: var(--bg-glass);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .scale-btn {
+            padding: 4px 8px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scale-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+        .scale-btn.active { background: var(--accent); color: white; }
+
+        .image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+
+        .image-card:hover .image-overlay {
+            transform: translateY(0);
+        }
+
+        .image-tag {
+            padding: 4px 10px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            font-size: 11px;
+            color: var(--accent-hover);
+            margin-right: 4px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .image-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-card:hover .image-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        /* Tag Selection UI */
+        .tag-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .category-block {
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .category-block:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .category-title.has-selected {
+            background: rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+        }
+
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .category-tag {
+            padding: 6px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .category-tag.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--error); }
+
+        /* Detail View */
+        .detail-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .detail-view.active { display: flex; }
+
+        .detail-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .detail-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .detail-image { width: 100%; border-radius: 16px; box-shadow: var(--shadow-lg); }
+
+        .detail-info { display: flex; flex-direction: column; gap: 24px; }
+
+        .detail-section {
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .detail-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-edit-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .detail-field-edit { display: none; }
+        .detail-field-edit.active { display: block; }
+        .detail-field-view.hidden { display: none; }
+
+        .detail-prompt-edit, .detail-meta-value-edit {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .detail-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .detail-meta-item { display: flex; flex-direction: column; gap: 4px; }
+        .detail-meta-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .detail-meta-value { font-size: 1rem; color: var(--text-primary); font-family: monospace; }
+
+        .detail-prompt {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .detail-resources { display: flex; flex-wrap: wrap; gap: 8px; }
+        .detail-resource { padding: 6px 12px; background: var(--accent-light); border: 1px solid var(--accent); border-radius: 12px; font-size: 13px; }
+
+        /* Progress Bar for Batch */
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; flex-direction: column; gap: 15px; }
+            .detail-content { grid-template-columns: 1fr; padding: 20px; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <!-- Header -->
+    <div class="header">
+            <div class="header-left">
+            <h1>🎨 <span class="brand-main">Prompt</span> <span class="brand-accent">SQL DB</span></h1>
+            <div class="save-indicator" id="saveIndicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="saveStatus">データベース未読込</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="btn-group">
+                <select id="folderSelect" class="form-input" style="min-width: 180px; border: none; background: var(--bg-glass);" onchange="handleFolderChange()">
+                    <option value="">すべてのフォルダ</option>
+                </select>
+                <button class="btn btn-secondary btn-icon" style="background: transparent; border: none;" onclick="showFolderManager()" title="フォルダ管理">📁</button>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary btn-icon" style="background: transparent; border: none;" id="viewToggleBtn" onclick="toggleViewMode()" title="表示切替 (グリッド/リスト) [V]">🖼️</button>
+                <button class="btn btn-secondary btn-icon" style="background: transparent; border: none;" onclick="toggleTheme()" title="テーマ切替 [T]">🌓</button>
+                <div class="scale-control" id="listScaleControl" style="display: none;">
+                    <button class="scale-btn" onclick="updateListScale(0.4)">40%</button>
+                    <button class="scale-btn" onclick="updateListScale(0.6)">60%</button>
+                    <button class="scale-btn" onclick="updateListScale(0.8)">80%</button>
+                    <button class="scale-btn active" onclick="updateListScale(1.0)">100%</button>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" style="background: transparent; border: none;" onclick="showImportModal()" title="インポート [Ctrl+O]">📥 インポート</button>
+                <button class="btn btn-secondary" style="background: transparent; border: none;" onclick="exportDatabase()" title="エクスポート [Ctrl+E]">💾 エクスポート</button>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button class="btn btn-secondary" onclick="showBatchAddModal()" title="複数画像を追加">📦 一括追加</button>
+            <button class="btn" onclick="showAddImageModal()">➕ 画像追加</button>
+            <button class="btn btn-secondary" onclick="showAddCategoryModal()">📂 カテゴリ</button>
+            <button class="btn btn-secondary btn-icon" onclick="showHelpModal()" title="ヘルプ">❓</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Category Drawer Toggle -->
+        <button class="drawer-toggle" id="drawerToggle" onclick="toggleCategoryDrawer()" title="カテゴリを切り替え">🏷️</button>
+        <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleCategoryDrawer()"></div>
+
+        <!-- Category Drawer -->
+        <div class="category-drawer" id="categoryDrawer">
+            <div class="drawer-header">
+                <h2 class="drawer-title">タグ カテゴリ</h2>
+                <div style="display: flex; align-items: center; gap: 0;">
+                    <button class="drawer-clear" onclick="clearAllTagFilters()" title="フィルタ解除">🧹</button>
+                    <button class="drawer-close" onclick="toggleCategoryDrawer()">×</button>
+                </div>
+            </div>
+            <div class="tag-filter-bar" id="tagFilterBar"></div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="タグやメタデータで画像を検索... [/]" oninput="handleSearch()">
+            <div class="filter-chips" id="filterChips"></div>
+        </div>
+
+        <!-- Images Grid -->
+        <div class="images-grid" id="imagesGrid">
+            <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 100px;">
+                <div style="font-size: 80px; opacity: 0.5;">📚</div>
+                <h2>データベース未読込</h2>
+                <p>新規データベースを作成するか、既存のSQLiteファイルをインポートして開始してください。</p>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+                    <button class="btn" onclick="initializeDatabase()">🆕 新規データベース作成</button>
+                    <button class="btn btn-secondary" onclick="showImportModal()">📥 インポート</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Action Bar -->
+    <div id="bulkActionBar" class="bulk-action-bar">
+        <div class="bulk-count" id="bulkCount">0 枚選択中</div>
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="bulkTag()">🏷️ 一括タグ付け</button>
+            <button class="btn btn-secondary" onclick="bulkMove()">📁 一括移動</button>
+            <button class="btn btn-secondary" style="color: var(--error);" onclick="bulkDelete()">🗑️ 一括削除</button>
+        </div>
+        <button class="btn btn-secondary btn-icon" onclick="clearSelection()">✕</button>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">画像追加</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Full Screen Detail View -->
+    <div id="detailView" class="detail-view">
+        <div class="detail-header">
+            <h2 id="detailTitle">画像詳細</h2>
+            <button class="btn btn-secondary" onclick="closeDetailView()">✕ 閉じる</button>
+        </div>
+        <div class="detail-content" id="detailContent"></div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="fileInput" style="display: none;" accept="image/*,.sqlite,.db" onchange="handleFileInput(event)">
+    <input type="file" id="batchFileInput" style="display: none;" accept="image/*" multiple onchange="handleBatchFileInput(event)">
+
+    <!-- sql.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+
+    <script>
+        // Global state
+        let SQL = null;
+        let db = null;
+        let currentImageId = null;
+        let selectedTags = new Set();
+        let activeFilters = new Set();
+        let allTags = new Set();
+        let hasUnsavedChanges = false;
+        let currentFolderId = null;
+        let currentImageList = [];
+        let currentImageIndex = -1;
+        let categoryDrawerOpen = false;
+        let viewMode = localStorage.getItem('promptdb-view-mode') || 'grid';
+        let imageObjectURLs = new Map();
+        let selectedIds = new Set();
+        let lastSelectedId = null;
+        
+        // Sorting and Resizing state
+        let sortColumn = localStorage.getItem('promptdb-sort-col') || 'created_at';
+        let sortOrder = localStorage.getItem('promptdb-sort-order') || 'DESC';
+        let listScale = parseFloat(localStorage.getItem('promptdb-list-scale')) || 1.0;
+        
+        let isAddingImage = false;
+        let addImageFormHTML = null;
+        let isEditingCategory = false;
+        let savedFileInput = null;
+        let savedPositivePrompt = '';
+        let savedNegativePrompt = '';
+
+        // Tag categories (Comprehensive list from ChromeEdge edition)
+        const TAG_CATEGORIES = {
+            'アートスタイル': { icon: '🎨', tags: ['印象派', 'シュルレアリスム', '抽象的', '写実主義', 'キュビスム', 'ポップアート', 'ミニマリズム', 'サイバーパンク', 'スチームパンク', 'アニメ', 'デジタルペインティング', '水彩画', '油絵', '3Dレンダリング', 'ピクセルアート', 'コンセプトアート'] },
+            'カメラ': { icon: '📷', tags: ['クローズアップ', '広角', 'ミディアムショット', '鳥瞰図', 'ローアングル', 'ハイアングル', 'アイレベル', 'ダッチアングル', 'パノラマ', 'マクロ', 'ボケ', '浅い被写界深度'] },
+            'ライティング': { icon: '💡', tags: ['ゴールデンアワー', 'ブルーアワー', '自然光', 'スタジオ照明', '逆光', 'リムライト', 'ソフトライト', 'ハードライト', 'ドラマチックな影', 'ハイキー', 'ローキー', 'キャンドルライト', 'ネオンライト'] },
+            'テーマ': { icon: '🌍', tags: ['ファンタジー', 'SF', '都市', '自然', 'ポートレート', '風景', '抽象的', '未来的', '中世', 'ヴィンテージ', 'モダン', 'ミニマリスト', 'マキシマリスト'] },
+            '雰囲気': { icon: '😊', tags: ['穏やか', 'ドラマチック', '神秘的', '楽しい', '憂鬱', 'エネルギッシュ', '平和', '緊張', 'ロマンチック', 'ノスタルジック', '不気味', '活気'] },
+            '色': { icon: '🌈', tags: ['暖色系', '寒色系', 'モノクロ', '鮮やか', '落ち着いた', 'パステル', 'ハイコントラスト', 'ローコントラスト', 'セピア', '白黒'] }
+        };
+
+        // English keywords for auto-tagging from metadata
+        const TAG_KEYWORDS = {
+            'Impressionism': '印象派', 'Surrealism': 'シュルレアリスム', 'Abstract': '抽象的', 'Realism': '写実主義', 'Cubism': 'キュビスム', 'Pop Art': 'ポップアート', 'Minimalism': 'ミニマリズム', 'Cyberpunk': 'サイバーパンク', 'Steampunk': 'スチームパンク', 'Anime': 'アニメ', 'Digital Painting': 'デジタルペインティング', 'Watercolor': '水彩画', 'Oil Painting': '油絵', '3D Render': '3Dレンダリング', 'Pixel Art': 'ピクセルアート', 'Concept Art': 'コンセプトアート',
+            'Close-Up': 'クローズアップ', 'Wide Shot': '広角', 'Medium Shot': 'ミディアムショット', 'Bird\'s Eye View': '鳥瞰図', 'Low Angle': 'ローアングル', 'High Angle': 'ハイアングル', 'Eye-Level': 'アイレベル', 'Dutch Angle': 'ダッチアングル', 'Panoramic': 'パノラマ', 'Macro': 'マクロ', 'Bokeh': 'ボケ', 'Shallow Depth of Field': '浅い被写界深度',
+            'Golden Hour': 'ゴールデンアワー', 'Blue Hour': 'ブルーアワー', 'Natural Light': '自然光', 'Studio Lighting': 'スタジオ照明', 'Backlighting': '逆光', 'Rim Light': 'リムライト', 'Soft Light': 'ソフトライト', 'Hard Light': 'ハードライト', 'Dramatic Shadows': 'ドラマチックな影', 'High Key': 'ハイキー', 'Low Key': 'ローキー', 'Candlelight': 'キャンドルライト', 'Neon Lights': 'ネオンライト',
+            'Fantasy': 'ファンタジー', 'Sci-Fi': 'SF', 'Urban': '都市', 'Nature': '自然', 'Portrait': 'ポートレート', 'Landscape': '風景', 'Futuristic': '未来的', 'Medieval': '中世', 'Vintage': 'ヴィンテージ', 'Modern': 'モダン', 'Minimalist': 'ミニマリスト', 'Maximalist': 'マキシマリスト',
+            'Serene': '穏やか', 'Dramatic': 'ドラマチック', 'Mysterious': '神秘的', 'Joyful': '楽しい', 'Melancholic': '憂鬱', 'Energetic': 'エネルギッシュ', 'Peaceful': '平和', 'Tense': '緊張', 'Romantic': 'ロマンチック', 'Nostalgic': 'ノスタルジック', 'Eerie': '不気味', 'Vibrant': '活気',
+            'Warm Tones': '暖色系', 'Cool Tones': '寒色系', 'Monochromatic': 'モノクロ', 'Vibrant': '鮮やか', 'Muted': '落ち着いた', 'Pastel': 'パステル', 'High Contrast': 'ハイコントラスト', 'Low Contrast': 'ローコントラスト', 'Sepia': 'セピア', 'Black & White': '白黒'
+        };
+
+        // Initialize sql.js
+        async function initSQL() {
+            if (!SQL) {
+                const config = { locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}` };
+                SQL = await initSqlJs(config);
+            }
+            return SQL;
+        }
+
+        // Helper to add column if missing
+        const addColumnIfMissing = (tableName, colName, colType) => {
+            try {
+                const tableInfo = db.exec(`PRAGMA table_info(${tableName});`);
+                if (tableInfo.length === 0) return false;
+                const columns = tableInfo[0].values.map(col => col[1]);
+                if (!columns.includes(colName)) {
+                    // Note: SQLite ALTER TABLE does NOT allow non-constant defaults like CURRENT_TIMESTAMP
+                    // So we add the column without a default and update values manually
+                    db.run(`ALTER TABLE ${tableName} ADD COLUMN ${colName} ${colType};`);
+                    console.log(`Migration: Added column ${colName} to ${tableName}`);
+                    return true;
+                }
+            } catch (e) {
+                console.error(`Migration error adding column ${colName} to ${tableName}:`, e.message);
+            }
+            return false;
+        };
+
+        // Database migrations
+        function runMigrations() {
+            if (!db) return;
+            try {
+                console.log('Running database migrations...');
+                
+                // Add missing columns to images table
+                addColumnIfMissing('images', 'folder_id', 'INTEGER');
+                addColumnIfMissing('images', 'updated_at', 'DATETIME');
+                addColumnIfMissing('images', 'positive_prompt', 'TEXT');
+                addColumnIfMissing('images', 'negative_prompt', 'TEXT');
+                addColumnIfMissing('images', 'model', 'TEXT');
+                addColumnIfMissing('images', 'seed', 'TEXT');
+                addColumnIfMissing('images', 'steps', 'TEXT');
+                addColumnIfMissing('images', 'cfg', 'TEXT');
+                addColumnIfMissing('images', 'sampler', 'TEXT');
+                addColumnIfMissing('images', 'size', 'TEXT');
+                addColumnIfMissing('images', 'metadata_text', 'TEXT');
+
+                // Initialize updated_at if missing values
+                try {
+                    db.run(`UPDATE images SET updated_at = created_at WHERE updated_at IS NULL;`);
+                    db.run(`UPDATE images SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL;`);
+                } catch (e) {
+                    console.warn('Migration: Could not initialize updated_at data:', e.message);
+                }
+                
+                // Ensure image_tags table exists
+                db.run(`CREATE TABLE IF NOT EXISTS image_tags (id INTEGER PRIMARY KEY AUTOINCREMENT, image_id INTEGER NOT NULL, tag_name TEXT NOT NULL, category TEXT, FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE);`);
+                
+                // Check image_tags columns
+                addColumnIfMissing('image_tags', 'category', 'TEXT');
+
+                // Ensure custom_categories table exists
+                db.run(`CREATE TABLE IF NOT EXISTS custom_categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, icon TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`);
+                
+                // Ensure indices exist
+                try { db.run(`CREATE INDEX IF NOT EXISTS idx_images_updated ON images(updated_at);`); } catch(e) {}
+                try { db.run(`CREATE INDEX IF NOT EXISTS idx_images_created ON images(created_at);`); } catch(e) {}
+                try { db.run(`CREATE INDEX IF NOT EXISTS idx_images_folder ON images(folder_id);`); } catch(e) {}
+                
+                console.log('Database migrations verified');
+            } catch (e) {
+                console.error('Migration critical error:', e);
+            }
+        }
+
+        // Initialize database
+        async function initializeDatabase() {
+            try {
+                await initSQL();
+                db = new SQL.Database();
+                
+                // Skeleton tables - runMigrations will add all other columns
+                db.run(`CREATE TABLE IF NOT EXISTS folders (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`);
+                db.run(`CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, image_data BLOB NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`);
+                db.run(`CREATE TABLE IF NOT EXISTS image_tags (id INTEGER PRIMARY KEY AUTOINCREMENT, image_id INTEGER NOT NULL, tag_name TEXT NOT NULL, category TEXT, FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE);`);
+                db.run(`CREATE TABLE IF NOT EXISTS custom_tags (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL, tag_name TEXT NOT NULL, UNIQUE(category, tag_name));`);
+                db.run(`CREATE TABLE IF NOT EXISTS custom_categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, icon TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`);
+                
+                runMigrations();
+
+                showToast('データベースを初期化しました！', 'success');
+                markSaved();
+                loadFolders();
+                loadImages();
+            } catch (error) {
+                console.error('Error initializing database:', error);
+                showToast('エラー: ' + error.message, 'error');
+            }
+        }
+
+        // --- Full Metadata Extraction ---
+        const LR = /<lora:([^:>]+)(?::([^:>]+))?(?::([^:>]+))?>/g;
+
+        async function decompressZlib(data) {
+            try {
+                const ds = new DecompressionStream('deflate-raw');
+                const writer = ds.writable.getWriter();
+                writer.write(data.slice(2, data.length - 4));
+                writer.close();
+                return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
+            } catch (e) {
+                try {
+                    const ds = new DecompressionStream('deflate');
+                    const writer = ds.writable.getWriter();
+                    writer.write(data);
+                    writer.close();
+                    return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
+                } catch(e2) { return null; }
+            }
+        }
+
+        function cleanTextForParsing(text) {
+            if (!text) return "";
+            return text.replace(/\0/g, '').replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        }
+
+        function extractEXIFUserComment(exifData) {
+            try {
+                const dataView = new DataView(exifData.buffer || exifData);
+                let offset = 0;
+                while (offset < exifData.length - 12) {
+                    const tag = dataView.getUint16(offset, true);
+                    if (tag === 37510) {
+                        const count = dataView.getUint32(offset + 4, true);
+                        const valueOffset = dataView.getUint32(offset + 8, true);
+                        if (count > 0 && valueOffset < exifData.length) {
+                            const valueData = new Uint8Array(exifData, valueOffset, Math.min(count, exifData.length - valueOffset));
+                            if (valueData.length > 8) {
+                                const encoding = String.fromCharCode(...valueData.slice(0, 8)).replace(/\0/g, '');
+                                if (encoding.includes('UNICODE') || encoding.includes('Unicode')) {
+                                    const textData = valueData.slice(8);
+                                    try {
+                                        const dLE = new TextDecoder('utf-16le').decode(textData);
+                                        if (dLE && (dLE.includes('Steps:') || dLE.includes('Negative prompt:'))) return dLE;
+                                    } catch(e) {}
+                                    try {
+                                        const dBE = new TextDecoder('utf-16be').decode(textData);
+                                        if (dBE && (dBE.includes('Steps:') || dBE.includes('Negative prompt:'))) return dBE;
+                                    } catch(e) {}
+                                    return new TextDecoder('utf-16le').decode(textData);
+                                }
+                                return new TextDecoder('utf-8').decode(valueData.slice(8));
+                            }
+                            return new TextDecoder('utf-8').decode(valueData);
+                        }
+                    }
+                    offset += 12;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function extractEXIFUserCommentFromJPEG(buffer) {
+            try {
+                const view = new DataView(buffer);
+                let offset = 2;
+                while (offset < buffer.byteLength - 4) {
+                    if (view.getUint8(offset) === 0xFF && view.getUint8(offset + 1) === 0xE1) {
+                        const segmentLength = view.getUint16(offset + 2);
+                        const segmentData = new Uint8Array(buffer, offset + 4, segmentLength - 2);
+                        if (segmentLength > 6 && String.fromCharCode(...segmentData.slice(0, 6)) === 'Exif\0\0') {
+                            const userComment = extractEXIFUserComment(segmentData.slice(6));
+                            if (userComment) return userComment;
+                        }
+                        offset += segmentLength + 2;
+                    } else { offset++; }
+                }
+                const bufferArray = new Uint8Array(buffer);
+                const unicodeMarker = new TextEncoder().encode('UNICODE');
+                for (let i = 0; i < bufferArray.length - 108; i++) {
+                    let match = true;
+                    for (let j = 0; j < 7; j++) if (bufferArray[i+j] !== unicodeMarker[j]) { match = false; break; }
+                    if (match) {
+                        const textData = bufferArray.slice(i + 8);
+                        try {
+                            const dLE = new TextDecoder('utf-16le').decode(textData);
+                            if (dLE.includes('Steps:') || dLE.includes('Negative prompt:')) return dLE;
+                            const dBE = new TextDecoder('utf-16be').decode(textData);
+                            if (dBE.includes('Steps:') || dBE.includes('Negative prompt:')) return dBE;
+                        } catch(e) {}
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        async function extractText(buffer) {
+            const view = new DataView(buffer);
+            let fullText = "";
+            try {
+                if (view.getUint32(0) === 0x89504E47) {
+                    let offset = 8;
+                    while (offset < view.byteLength) {
+                        const len = view.getUint32(offset);
+                        const type = String.fromCharCode(...new Uint8Array(buffer, offset + 4, 4));
+                        if (type === 'tEXt' || type === 'iTXt') fullText += new TextDecoder('utf-8').decode(new Uint8Array(buffer, offset + 8, len)).replace(/\0/g, '') + "\n";
+                        else if (type === 'zTXt') {
+                            const inflated = await decompressZlib(new Uint8Array(buffer, offset + 8, len));
+                            if (inflated) fullText += inflated + "\n";
+                        }
+                        offset += len + 12;
+                        if (type === 'IEND') break;
+                    }
+                } else if (view.getUint32(0) === 0x52494646 || view.getUint16(0) === 0xFFD8) {
+                    const exifText = extractEXIFUserCommentFromJPEG(buffer);
+                    if (exifText) fullText = exifText;
+                    else {
+                        try { fullText = new TextDecoder('utf-8').decode(new Uint8Array(buffer)); } catch(e) {}
+                    }
+                }
+            } catch(e) {}
+            return cleanTextForParsing(fullText);
+        }
+
+        function extractJSON(str, startPos = 0) {
+            const start = str.indexOf('{', startPos);
+            if (start === -1) return null;
+            let count = 0, end = -1;
+            for (let i = start; i < str.length; i++) {
+                if (str[i] === '{') count++; else if (str[i] === '}') count--;
+                if (count === 0) { end = i; break; }
+            }
+            if (end !== -1) {
+                try { return {json: JSON.parse(str.substring(start, end + 1)), end: end + 1}; } catch(e) { return null; }
+            }
+            return null;
+        }
+
+        function parseComfy(json) {
+            let pos = "", neg = "", meta = {model: "?", size: "?", seed: "?", steps: "?", cfg: "?", sampler: "?"}, resources = [];
+            let nodes = [];
+            let nodeMap = {};
+            
+            if (json.nodes && Array.isArray(json.nodes)) {
+                nodes = json.nodes.map(n => {
+                    const node = {
+                        class_type: n.type || n.data?.class_type || "",
+                        inputs: n.inputs || n.data?.inputs || (n.widgets_values ? {} : {})
+                    };
+                    if (n.id !== undefined) nodeMap[n.id] = node;
+                    return node;
+                }).filter(n => n.class_type || n.inputs);
+            } else {
+                const vals = Object.values(json);
+                nodes = vals.filter(n => n && typeof n === 'object' && (n.class_type || n.inputs));
+                vals.forEach((n, i) => {
+                    if (n && typeof n === 'object' && (n.class_type || n.inputs)) {
+                        const key = Object.keys(json)[i];
+                        if (key && !isNaN(key)) nodeMap[key] = n;
+                    }
+                });
+            }
+
+            const findUpstreamText = (l, d = 0) => {
+                if (d > 10 || !l || !Array.isArray(l)) return "";
+                let n = null;
+                if (typeof l[0] === 'string' || typeof l[0] === 'number') {
+                    n = json[l[0]] || nodeMap[l[0]];
+                } else if (typeof l[0] === 'object') {
+                    n = l[0];
+                }
+                if (!n) return "";
+                const inputs = n.inputs || {};
+                if (!inputs && !n.widgets_values) return "";
+                let t = "";
+                
+                if (Array.isArray(n.widgets_values) && n.widgets_values.length > 0 && typeof n.widgets_values[0] === 'string') {
+                    t += n.widgets_values[0];
+                }
+                if (typeof inputs.text === 'string') {
+                    t += (t ? ", " : "") + inputs.text;
+                } else if (Array.isArray(inputs.text)) {
+                    const r = findUpstreamText(inputs.text, d + 1);
+                    if (r) t += (t ? ", " : "") + r;
+                }
+                if (typeof inputs.text_g === 'string') t += (t ? ", " : "") + inputs.text_g;
+                if (typeof inputs.text_l === 'string') t += (t ? ", " : "") + inputs.text_l;
+                if (inputs.string_field) t += (t ? ", " : "") + inputs.string_field;
+                
+                for (const key in inputs) {
+                    if (key.startsWith('string_') || key.startsWith('str_') || key.includes('text') || key.includes('prompt')) {
+                        const val = inputs[key];
+                        if (typeof val === 'string' && val.length > 0) {
+                            if (key !== 'delimiter' || val.length > 1) t += (t ? "" : "") + val;
+                        } else if (Array.isArray(val) && val.length > 0) {
+                            const r = findUpstreamText(val, d + 1);
+                            if (r) t += (t ? ", " : "") + r;
+                        }
+                    }
+                }
+                
+                if (inputs.trigger_words_display && Array.isArray(inputs.trigger_words_display.__value__)) {
+                    const tags = inputs.trigger_words_display.__value__.filter(x => x.active).map(x => x.text).join(", ");
+                    if (tags) t += (t ? ", " : "") + tags;
+                }
+                
+                const keys = ['positive', 'negative', 'conditioning', 'clip', 'prompt', 'trigger_words'];
+                for (const k of keys) {
+                    if (inputs[k]) {
+                        const r = findUpstreamText(inputs[k], d + 1);
+                        if (r) t += (t ? ", " : "") + r;
+                    }
+                }
+                
+                if (!t) {
+                    for (const key in inputs) {
+                        const val = inputs[key];
+                        if (Array.isArray(val) && val.length > 0 && (typeof val[0] === 'string' || typeof val[0] === 'number')) {
+                            const r = findUpstreamText(val, d + 1);
+                            if (r) { t = r; break; }
+                        }
+                    }
+                }
+                return t;
+            };
+
+            const findUpstreamModel = (l, d = 0) => {
+                if (d > 10 || !l || !Array.isArray(l)) return "";
+                let n = null;
+                if (typeof l[0] === 'string' || typeof l[0] === 'number') {
+                    n = json[l[0]] || nodeMap[l[0]];
+                } else if (typeof l[0] === 'object') {
+                    n = l[0];
+                }
+                if (!n) return "";
+                const inputs = n.inputs || {};
+                if (inputs.ckpt_name) return inputs.ckpt_name;
+                if (inputs.unet_name) return inputs.unet_name;
+                if (inputs.checkpoint_name) return inputs.checkpoint_name;
+                if (inputs.model_name) return inputs.model_name;
+                if (inputs.model) return findUpstreamModel(inputs.model, d + 1);
+                return "";
+            };
+
+            const samplerTypes = ["KSampler", "KSamplerAdvanced", "SamplerCustom", "SamplerEulerAncestralCFGPP", "SamplerLCM"];
+            const ksampler = nodes.find(n => n.class_type && samplerTypes.some(type => n.class_type.includes(type)));
+            
+            if (ksampler) {
+                const inputs = ksampler.inputs || {};
+                meta.seed = inputs.seed || inputs.noise_seed || "?";
+                meta.steps = inputs.steps || "?";
+                meta.cfg = inputs.cfg || "?";
+                meta.sampler = inputs.sampler_name || ksampler.class_type || "?";
+                if (inputs.scheduler) meta.sampler += " " + inputs.scheduler;
+                if (inputs.positive) pos = findUpstreamText(inputs.positive);
+                if (inputs.negative) neg = findUpstreamText(inputs.negative);
+                if (inputs.model) meta.model = findUpstreamModel(inputs.model).replace(/\.(safetensors|ckpt)$/, "");
+            }
+
+            nodes.forEach(n => {
+                const nodeType = n.class_type || "";
+                const inputs = n.inputs || {};
+                if (inputs.lora_name) resources.push({type: 'LoRA', name: inputs.lora_name.replace(/\.(safetensors|ckpt)$/, ""), str: inputs.strength_model});
+                if (nodeType.includes("Power Lora Loader")) {
+                    for (const [k, v] of Object.entries(inputs)) {
+                        if (k.startsWith('lora_') && v?.on) {
+                            resources.push({type: 'LoRA', name: v.lora.replace(/\.(safetensors|ckpt)$/, ""), str: v.strength});
+                        }
+                    }
+                }
+                if (inputs.loras && Array.isArray(inputs.loras.__value__)) {
+                    inputs.loras.__value__.forEach(l => {
+                        if (l.name && l.active !== false) {
+                            resources.push({type: 'LoRA', name: l.name, str: l.strength});
+                        }
+                    });
+                }
+                if (nodeType.includes("ControlNet") && inputs.control_net_name) {
+                    resources.push({type: 'ControlNet', name: inputs.control_net_name, str: inputs.strength || "1.0"});
+                }
+                if (nodeType.includes("IPAdapter") && inputs.ipadapter_file) {
+                    resources.push({type: 'IP-Adapter', name: inputs.ipadapter_file, str: inputs.weight || "1.0"});
+                }
+            });
+
+            const sizeNodes = ["EmptyLatentImage", "LatentUpscale", "LatentComposite", "EmptySD3LatentImage"];
+            const sizeNode = nodes.find(n => sizeNodes.includes(n.class_type));
+            if (sizeNode) {
+                const inputs = sizeNode.inputs || {};
+                if (inputs.width && inputs.height) meta.size = `${inputs.width}x${inputs.height}`;
+            }
+            
+            return {pos, neg, meta, resources};
+        }
+
+        function parseA1111(text) {
+            let pos = "", neg = "";
+            let resources = [];
+            let meta = { model: "?", size: "?", seed: "?", steps: "?", cfg: "?", sampler: "?" };
+
+            // Clean text - remove any remaining control characters
+            text = text.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
+
+            let match;
+            LR.lastIndex = 0;
+            while ((match = LR.exec(text)) !== null) {
+                resources.push({type: 'LoRA', name: match[1], str: match[2] || "1.0"});
+            }
+
+            // Extract Civitai resources JSON (common in Flux/Civitai exports)
+            const civitaiResourcesMatch = text.match(/Civitai resources:\s*(\[.*?\])/);
+            if (civitaiResourcesMatch) {
+                try {
+                    const resJson = JSON.parse(civitaiResourcesMatch[1]);
+                    resJson.forEach(res => {
+                        let name = res.modelName || res.name || "Unknown";
+                        if (res.modelVersionName && res.modelVersionName !== "v1.0") name += ` (${res.modelVersionName})`;
+                        resources.push({
+                            type: res.type || 'Unknown',
+                            name: name,
+                            str: String(res.weight || '1.0')
+                        });
+                    });
+                } catch(e) {}
+            }
+
+            // Try multiple marker variations (case-insensitive)
+            const negMarkers = ["Negative prompt:", "Negative Prompt:", "negative prompt:", "Negative prompt"];
+            const stepsMarkers = ["Steps:", "Steps", "Step:"];
+            
+            let negIdx = -1, stepsIdx = -1;
+            let negMarker = "";
+            
+            // Find negative prompt marker
+            for (const marker of negMarkers) {
+                const idx = text.indexOf(marker);
+                if (idx !== -1) {
+                    negIdx = idx;
+                    negMarker = marker;
+                    break;
+                }
+            }
+            
+            // Find steps marker
+            for (const marker of stepsMarkers) {
+                const idx = text.indexOf(marker);
+                if (idx !== -1) {
+                    stepsIdx = idx;
+                    break;
+                }
+            }
+
+            // Extract prompts
+            if (negIdx !== -1 && stepsIdx !== -1 && negIdx < stepsIdx) {
+                pos = text.substring(0, negIdx).replace(/parameters\s*/i, "").trim();
+                neg = text.substring(negIdx + negMarker.length, stepsIdx).trim();
+            } else if (stepsIdx !== -1) {
+                pos = text.substring(0, stepsIdx).replace(/parameters\s*/i, "").trim();
+            } else if (negIdx !== -1) {
+                // Only negative marker found
+                pos = text.substring(0, negIdx).replace(/parameters\s*/i, "").trim();
+                neg = text.substring(negIdx + negMarker.length).trim();
+            } else {
+                // No markers found - try to extract from JSON or use whole text
+                if(text.includes('"widgets_values"')) {
+                    const parts = text.split(/"text":\s*"/);
+                    if(parts.length > 1) pos = parts[1].split('"')[0];
+                } else {
+                    // Check if it's just a prompt without metadata markers
+                    pos = text.trim();
+                }
+            }
+
+            // Extract parameters - improved regex patterns
+            if (stepsIdx !== -1) {
+                const block = text.substring(stepsIdx);
+                
+                // More flexible parameter extraction
+                const getParam = (key, patterns) => {
+                    for (const pattern of patterns) {
+                        const regex = new RegExp(pattern, 'i');
+                        const match = block.match(regex);
+                        if (match && match[1]) {
+                            return match[1].trim();
+                        }
+                    }
+                    return "?";
+                };
+                
+                meta.steps = getParam("Steps", [
+                    "Steps:\\s*([0-9]+)",
+                    "Steps\\s*:\\s*([0-9]+)",
+                    "Steps\\s+([0-9]+)"
+                ]);
+                
+                meta.sampler = getParam("Sampler", [
+                    "Sampler:\\s*([^,\\n]+)",
+                    "Sampler\\s*:\\s*([^,\\n]+)",
+                    "Sampler\\s+([^,\\n]+)"
+                ]);
+                
+                meta.cfg = getParam("CFG", [
+                    "CFG\\s+scale:\\s*([0-9.]+)",
+                    "CFG\\s*scale\\s*:\\s*([0-9.]+)",
+                    "CFG\\s*:\\s*([0-9.]+)",
+                    "CFG scale\\s*:\\s*([0-9.]+)"
+                ]);
+                
+                meta.seed = getParam("Seed", [
+                    "Seed:\\s*([0-9]+)",
+                    "Seed\\s*:\\s*([0-9]+)",
+                    "Seed\\s+([0-9]+)"
+                ]);
+                
+                meta.size = getParam("Size", [
+                    "Size:\\s*([0-9xX]+)",
+                    "Size\\s*:\\s*([0-9xX]+)",
+                    "Size\\s+([0-9xX]+)"
+                ]);
+                
+                meta.model = getParam("Model", [
+                    "Model:\\s*([^,\\n]+)",
+                    "Model\\s*:\\s*([^,\\n]+)",
+                    "Model\\s+([^,\\n]+)"
+                ]);
+            }
+
+            return {pos, neg, resources, meta};
+        }
+
+        function parseMetadata(text) {
+            let comfyResult = null;
+            if (text.includes('"class_type"') && text.includes('"inputs"')) {
+                let pos = 0;
+                while (true) {
+                    const result = extractJSON(text, pos);
+                    if (!result) break;
+                    const json = result.json;
+                    pos = result.end;
+                    if (json && (json.class_type || json.nodes || Object.values(json).some(v => v && typeof v === 'object' && (v.class_type || v.type)))) {
+                        const parsed = parseComfy(json);
+                        if (parsed && (parsed.pos || parsed.meta.model !== "?")) {
+                            comfyResult = parsed;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!comfyResult && (text.includes('"class_type"') || text.includes('"type"') || (text.includes('"inputs"') && (text.includes('KSampler') || text.includes('CLIPTextEncode') || text.includes('SaveImage') || text.includes('CLIPLoader') || text.includes('VAELoader'))))) {
+                let pos = 0;
+                while (true) {
+                    const result = extractJSON(text, pos);
+                    if (!result) break;
+                    const json = result.json;
+                    pos = result.end;
+                    if (json && (json.class_type || json.nodes || json.type || Object.values(json).some(v => v && typeof v === 'object' && (v.class_type || v.type)))) {
+                        const parsed = parseComfy(json);
+                        if (parsed && (parsed.pos || parsed.meta.model !== "?")) {
+                            comfyResult = parsed;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (comfyResult) return comfyResult;
+            return parseA1111(text);
+        }
+
+        function suggestTagsFromMetadata(parsed) {
+            const suggestedTags = [];
+            const promptLower = (parsed.pos || '').toLowerCase();
+            
+            // 1. Match from TAG_KEYWORDS (English keyword -> Japanese tag)
+            if (typeof TAG_KEYWORDS !== 'undefined') {
+                for (const [kw, jp] of Object.entries(TAG_KEYWORDS)) {
+                    if (promptLower.includes(kw.toLowerCase())) {
+                        // Find category for this Japanese tag
+                        let foundCat = 'その他';
+                        for (const [cat, data] of Object.entries(TAG_CATEGORIES)) {
+                            if (data.tags.includes(jp)) {
+                                foundCat = cat;
+                                break;
+                            }
+                        }
+                        if (!suggestedTags.some(s => s.tag === jp)) {
+                            suggestedTags.push({ category: foundCat, tag: jp });
+                        }
+                    }
+                }
+            }
+
+            // 2. Match Japanese tags directly from default categories
+            Object.entries(TAG_CATEGORIES).forEach(([category, data]) => {
+                data.tags.forEach(tag => {
+                    if (promptLower.includes(tag.toLowerCase()) && !suggestedTags.some(s => s.tag === tag)) {
+                        suggestedTags.push({ category, tag });
+                    }
+                });
+            });
+            
+            // 3. Match custom tags from database
+            if (db) {
+                try {
+                    const customTags = db.exec(`SELECT category, tag_name FROM custom_tags;`);
+                    if (customTags.length > 0 && customTags[0].values.length > 0) {
+                        customTags[0].values.forEach(row => {
+                            const [category, tagName] = row;
+                            if (promptLower.includes(tagName.toLowerCase()) && !suggestedTags.some(s => s.tag === tagName)) {
+                                suggestedTags.push({ category: category || 'その他', tag: tagName });
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Error matching custom tags:', e);
+                }
+            }
+            
+            return suggestedTags;
+        }
+
+        let searchTimeout;
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadImages();
+            }, 300);
+        }
+
+        // --- Core Logic ---
+        function updateSaveIndicator() {
+            const dot = document.getElementById('statusDot'), status = document.getElementById('saveStatus');
+            if (!db) { 
+                status.textContent = 'データベース未読込'; 
+                dot.style.background = 'var(--text-muted)';
+                dot.style.boxShadow = 'none';
+                return; 
+            }
+            if (hasUnsavedChanges) { 
+                status.textContent = '保存されていない変更があります (メモリ内)'; 
+                dot.className = 'status-dot unsaved'; 
+            }
+            else { 
+                status.textContent = 'データベース読込済'; 
+                dot.className = 'status-dot saved'; 
+            }
+        }
+
+        function markUnsaved() { hasUnsavedChanges = true; updateSaveIndicator(); }
+        function markSaved() { hasUnsavedChanges = false; updateSaveIndicator(); }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            localStorage.setItem('promptcraft-theme', next);
+        }
+
+        function toggleViewMode() {
+            viewMode = viewMode === 'grid' ? 'list' : 'grid';
+            localStorage.setItem('promptdb-view-mode', viewMode);
+            
+            const grid = document.getElementById('imagesGrid');
+            const btn = document.getElementById('viewToggleBtn');
+            const scaleControl = document.getElementById('listScaleControl');
+            
+            if (viewMode === 'list') {
+                if (grid) grid.classList.add('list-view');
+                btn.innerHTML = '📋';
+                if (scaleControl) scaleControl.style.display = 'flex';
+            } else {
+                if (grid) grid.classList.remove('list-view');
+                btn.innerHTML = '🖼️';
+                if (scaleControl) scaleControl.style.display = 'none';
+            }
+            loadImages();
+        }
+
+        function toggleCategoryDrawer() {
+            categoryDrawerOpen = !categoryDrawerOpen;
+            document.getElementById('categoryDrawer').classList.toggle('open', categoryDrawerOpen);
+            document.getElementById('drawerToggle').classList.toggle('open', categoryDrawerOpen);
+            document.getElementById('drawerBackdrop').classList.toggle('active', categoryDrawerOpen);
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // --- Database & Files ---
+        async function exportDatabase() {
+            if (!db) return showToast('エクスポートするデータベースがありません', 'error');
+            try {
+                const blob = new Blob([db.export()], { type: 'application/x-sqlite3' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'PromptDB.sqlite'; a.click();
+                URL.revokeObjectURL(url);
+                markSaved();
+                showToast('データベースをエクスポートしました！', 'success');
+            } catch (e) { showToast('エクスポートに失敗しました: ' + e.message, 'error'); }
+        }
+
+        function showImportModal() { document.getElementById('fileInput').click(); }
+
+        async function handleFileInput(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.name.endsWith('.sqlite') || file.name.endsWith('.db')) {
+                try {
+                    await initSQL();
+                    const buf = await file.arrayBuffer();
+                    db = new SQL.Database(new Uint8Array(buf));
+                    
+                    // Run migrations
+                    runMigrations();
+                    
+                    showToast('データベースを読み込みました！', 'success');
+                    markSaved(); loadFolders(); loadImages();
+                } catch (e) { showToast('インポートに失敗しました: ' + e.message, 'error'); }
+            } else {
+                showAddImageModal();
+                setTimeout(() => {
+                    const input = document.querySelector('#modalBody input[type="file"]');
+                    if (input) {
+                        const dt = new DataTransfer(); dt.items.add(file);
+                        input.files = dt.files; 
+                        previewImageFile(input);
+                    }
+                }, 100);
+            }
+            event.target.value = '';
+        }
+
+        // --- Gallery Rendering ---
+        function loadImages() {
+            if (!db) return;
+            const grid = document.getElementById('imagesGrid');
+            if (!grid) return;
+            
+            let searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            let q = `SELECT i.*, GROUP_CONCAT(it.tag_name) as tags FROM images i LEFT JOIN image_tags it ON i.id = it.image_id WHERE 1=1`;
+            let params = [];
+
+            // Advanced "Smart" Search Support
+            const filters = {
+                model: searchQuery.match(/model:([^\s]+)/)?.[1],
+                size: searchQuery.match(/size:([^\s]+)/)?.[1],
+                steps: searchQuery.match(/steps:([^\s]+)/)?.[1],
+                cfg: searchQuery.match(/cfg:([^\s]+)/)?.[1],
+                seed: searchQuery.match(/seed:([^\s]+)/)?.[1],
+                sampler: searchQuery.match(/sampler:([^\s]+)/)?.[1]
+            };
+
+            Object.keys(filters).forEach(k => { if (filters[k]) searchQuery = searchQuery.replace(new RegExp(`${k}:[^\s]+`, 'g'), ''); });
+            
+            if (filters.model) { q += ` AND i.model LIKE ?`; params.push(`%${filters.model}%`); }
+            if (filters.size) { q += ` AND i.size LIKE ?`; params.push(`%${filters.size}%`); }
+            if (filters.steps) { q += ` AND i.steps = ?`; params.push(filters.steps); }
+            if (filters.cfg) { q += ` AND i.cfg = ?`; params.push(filters.cfg); }
+            if (filters.seed) { q += ` AND i.seed = ?`; params.push(filters.seed); }
+            if (filters.sampler) { q += ` AND i.sampler LIKE ?`; params.push(`%${filters.sampler}%`); }
+
+            if (currentFolderId) { q += ` AND i.folder_id = ?`; params.push(currentFolderId); }
+            
+            const textSearch = searchQuery.trim();
+            if (textSearch) { 
+                q += ` AND (i.filename LIKE ? OR i.positive_prompt LIKE ? OR it.tag_name LIKE ?)`; 
+                params.push(`%${textSearch}%`, `%${textSearch}%`, `%${textSearch}%`); 
+            }
+
+            if (activeFilters.size > 0) { 
+                q += ` AND it.tag_name IN (${Array.from(activeFilters).map(() => '?').join(',')})`; 
+                params.push(...Array.from(activeFilters)); 
+            }
+
+            // Safety check for sort column existence
+            let finalSortColumn = sortColumn;
+            try {
+                db.exec(`SELECT ${sortColumn} FROM images LIMIT 1;`);
+            } catch (e) {
+                console.warn(`Sort column ${sortColumn} not found, falling back to created_at`);
+                finalSortColumn = 'created_at';
+            }
+
+            q += ` GROUP BY i.id ORDER BY i.${finalSortColumn} ${sortOrder}`;
+
+            const res = db.exec(q, params);
+            grid.innerHTML = ''; 
+            currentImageList = [];
+            
+            // Memory management: Revoke old URLs
+            imageObjectURLs.forEach(url => URL.revokeObjectURL(url)); 
+            imageObjectURLs.clear();
+
+            if (!res.length || !res[0].values.length) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 100px;"><div style="font-size: 80px; opacity: 0.5;">🔍</div><h2>画像が見つかりません</h2><p>検索条件を広げるか、フィルタを解除してみてください。</p></div>';
+                return;
+            }
+
+            if (viewMode === 'list') {
+                const header = document.createElement('div');
+                header.className = 'list-header';
+                header.style.setProperty('--scale', listScale);
+                const headers = [
+                    { label: '画像', col: null },
+                    { label: 'ファイル名', col: 'filename' },
+                    { label: 'モデル', col: 'model' },
+                    { label: 'サンプラー', col: 'sampler' },
+                    { label: 'サイズ', col: 'size' },
+                    { label: 'ステップ数', col: 'steps' },
+                    { label: 'CFG', col: 'cfg' },
+                    { label: '作成日', col: 'created_at' },
+                    { label: '更新日', col: 'updated_at' }
+                ];
+                
+                header.innerHTML = headers.map(h => {
+                    const activeClass = sortColumn === h.col ? 'active-sort' : '';
+                    const arrow = sortColumn === h.col ? (sortOrder === 'ASC' ? ' ↑' : ' ↓') : '';
+                    if (!h.col) return `<div>${h.label}</div>`;
+                    return `<div class="${activeClass}" onclick="toggleSort('${h.col}')">${h.label}${arrow}</div>`;
+                }).join('');
+                grid.appendChild(header);
+                grid.classList.add('list-view');
+            } else {
+                grid.classList.remove('list-view');
+            }
+
+            res[0].values.forEach(row => {
+                const img = {}; res[0].columns.forEach((c, i) => img[c] = row[i]);
+                currentImageList.push(img.id);
+                
+                const blob = new Blob([img.image_data], { type: 'image/png' });
+                const url = URL.createObjectURL(blob); 
+                imageObjectURLs.set(img.id, url);
+                
+                const tags = img.tags ? img.tags.split(',') : [];
+                const card = document.createElement('div');
+                card.className = `image-card ${viewMode === 'list' ? 'list-row' : ''} ${selectedIds.has(img.id) ? 'selected' : ''}`;
+                card.setAttribute('data-id', img.id);
+                if (viewMode === 'list') card.style.setProperty('--scale', listScale);
+                
+                if (viewMode === 'list') {
+                    card.innerHTML = `
+                        <div class="selection-indicator">✓</div>
+                        <img src="${url}" loading="lazy">
+                        <div class="list-info">
+                            <div class="filename">${img.filename}</div>
+                            <div class="list-meta">
+                                ${tags.length > 0 ? tags.slice(0, 3).map(tag => `<span class="image-tag">${tag}</span>`).join('') : ''}
+                                ${tags.length > 3 ? `<span class="image-tag">+${tags.length - 3}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="list-cell">${img.model || '?'}</div>
+                        <div class="list-cell">${img.sampler || '?'}</div>
+                        <div class="list-cell">${img.size || '?'}</div>
+                        <div class="list-cell">${img.steps || '?'}</div>
+                        <div class="list-cell">${img.cfg || '?'}</div>
+                        <div class="list-cell">${new Date(img.created_at).toLocaleDateString()}</div>
+                        <div class="list-cell">${new Date(img.updated_at || img.created_at).toLocaleDateString()}</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="selection-indicator">✓</div>
+                        <button class="card-copy-btn" onclick="copyPromptToClipboard(${img.id}, event)" title="プロンプトをコピー">📋</button>
+                        <img src="${url}" loading="lazy">
+                        <div class="image-overlay">
+                            <div style="font-weight: 600; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${img.filename}</div>
+                            <div class="image-tags">${tags.slice(0, 3).map(t => `<span class="image-tag">${t}</span>`).join('')}${tags.length > 3 ? '<span class="image-tag">...</span>' : ''}</div>
+                        </div>
+                        <div class="image-actions">
+                            <button class="action-btn" onclick="deleteImage(${img.id}, event)">🗑️</button>
+                        </div>
+                    `;
+                }
+
+                card.onclick = (e) => {
+                    if (e.target.closest('.image-actions') || e.target.closest('.card-copy-btn')) return;
+                    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                        if (e.shiftKey) { e.preventDefault(); window.getSelection().removeAllRanges(); }
+                        toggleSelection(img.id, e);
+                    } else showImageDetail(img.id);
+                };
+                grid.appendChild(card);
+            });
+            updateTagFilterBar();
+            updateFilterChips();
+        }
+
+        // --- Selection Logic ---
+        function toggleSelection(id, e) {
+            if (e.shiftKey && lastSelectedId !== null) {
+                const start = currentImageList.indexOf(lastSelectedId), end = currentImageList.indexOf(id);
+                if (start !== -1 && end !== -1) {
+                    const range = currentImageList.slice(Math.min(start, end), Math.max(start, end) + 1);
+                    const shouldSelect = !selectedIds.has(id);
+                    range.forEach(rid => shouldSelect ? selectedIds.add(rid) : selectedIds.delete(rid));
+                }
+            } else { 
+                if (selectedIds.has(id)) selectedIds.delete(id); 
+                else selectedIds.add(id); 
+            }
+            lastSelectedId = id; 
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            document.querySelectorAll('.image-card').forEach(c => {
+                const id = parseInt(c.getAttribute('data-id'));
+                if (selectedIds.has(id)) c.classList.add('selected'); 
+                else c.classList.remove('selected');
+            });
+            const bar = document.getElementById('bulkActionBar'), count = document.getElementById('bulkCount');
+            if (selectedIds.size > 0) { 
+                bar.classList.add('active'); 
+                count.textContent = `${selectedIds.size} 枚選択中`; 
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function clearSelection() { selectedIds.clear(); updateSelectionUI(); }
+
+        // --- Modals & UI Builders ---
+        function showModal(title, html) {
+            const m = document.getElementById('modal');
+            const modalContent = m.querySelector('.modal-content');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = html;
+            
+            // Robust scroll reset
+            modalContent.scrollTop = 0;
+            requestAnimationFrame(() => {
+                modalContent.scrollTop = 0;
+                setTimeout(() => { modalContent.scrollTop = 0; }, 10);
+            });
+
+            m.classList.add('active');
+        }
+
+        function closeModal() {
+            const m = document.getElementById('modal');
+            const modalContent = m.querySelector('.modal-content');
+            m.classList.remove('active');
+            modalContent.scrollTop = 0;
+            currentImageId = null; 
+            isAddingImage = false; 
+            selectedTags.clear();
+        }
+
+        function showAddImageModal() {
+            if (!db) { initializeDatabase().then(showAddImageModal); return; }
+            isAddingImage = true;
+            const html = `
+                <div class="image-preview-container">
+                    <img id="imagePreview" class="detail-image" style="display: none; max-height: 300px; margin: 0 auto 20px; object-fit: contain;">
+                </div>
+                <form onsubmit="saveImage(event)">
+                    <div class="form-group">
+                        <label class="form-label">画像を選択 *</label>
+                        <input type="file" class="form-input" name="imageFile" required onchange="previewImageFile(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ポジティブ プロンプト</label>
+                        <textarea class="form-textarea" name="positivePrompt" id="positivePrompt" placeholder="メタデータがあれば自動入力されます..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ネガティブ プロンプト</label>
+                        <textarea class="form-textarea" name="negativePrompt" id="negativePrompt" placeholder="メタデータがあれば自動入力されます..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">タグとカテゴリ</label>
+                        <div class="tag-categories" id="tagCategoriesContainer"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                        <button type="submit" class="btn">✨ 画像を保存</button>
+                    </div>
+                </form>
+            `;
+            showModal('画像を追加', html);
+            renderTagCategories();
+        }
+
+        async function previewImageFile(input) {
+            const f = input.files[0]; if (!f) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const imgPreview = document.getElementById('imagePreview');
+                imgPreview.src = e.target.result;
+                imgPreview.style.display = 'block';
+                const buf = await f.arrayBuffer();
+                const raw = await extractText(buf);
+                const p = parseMetadata(raw);
+                document.getElementById('positivePrompt').value = p.pos || '';
+                document.getElementById('negativePrompt').value = p.neg || '';
+                
+                // Smart auto-tagging
+                const suggested = suggestTagsFromMetadata(p);
+                selectedTags.clear(); 
+                suggested.forEach(s => selectedTags.add(s.tag));
+                renderTagCategories();
+            };
+            reader.readAsDataURL(f);
+        }
+
+        async function saveImage(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target), file = fd.get('imageFile');
+            if (!file || !file.size) return showToast('画像を選択してください', 'error');
+            
+            const buf = await file.arrayBuffer();
+            const raw = await extractText(buf);
+            const p = parseMetadata(raw);
+            const pos = fd.get('positivePrompt') || p.pos || '';
+            const neg = fd.get('negativePrompt') || p.neg || '';
+            
+            try {
+                db.run(`INSERT INTO images (filename, image_data, positive_prompt, negative_prompt, model, seed, steps, cfg, sampler, size, metadata_text, folder_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                    [file.name, new Uint8Array(buf), pos, neg, p.meta.model, p.meta.seed, p.meta.steps, p.meta.cfg, p.meta.sampler, p.meta.size, raw, currentFolderId]);
+                
+                const res = db.exec("SELECT last_insert_rowid()");
+                const id = res[0].values[0][0];
+                
+                selectedTags.forEach(t => {
+                    db.run("INSERT INTO image_tags (image_id, tag_name, category) VALUES (?,?,?)", [id, t, 'その他']);
+                });
+                
+                showToast('画像を保存しました！', 'success'); 
+                markUnsaved(); 
+                closeModal(); 
+                loadImages();
+            } catch (err) {
+                showToast('保存に失敗しました: ' + err.message, 'error');
+            }
+        }
+
+        // Edit image (port from ChromeEdge)
+        async function editImage(imageId, event) {
+            if (event) event.stopPropagation();
+            if (!db) return;
+
+            try {
+                const result = db.exec(`SELECT * FROM images WHERE id = ?;`, [imageId]);
+                if (!result.length || !result[0].values.length) return;
+
+                const image = {};
+                result[0].columns.forEach((col, i) => {
+                    image[col] = result[0].values[0][i];
+                });
+
+                // Load tags
+                const tagsResult = db.exec(`SELECT tag_name FROM image_tags WHERE image_id = ?;`, [imageId]);
+                const tags = tagsResult.length > 0 && tagsResult[0].values.length > 0 
+                    ? tagsResult[0].values.map(row => row[0]) 
+                    : [];
+
+                // Reuse add image modal UI for editing
+                showAddImageModal();
+                
+                // Change title and button
+                document.getElementById('modalTitle').textContent = '画像を編集';
+                const form = document.querySelector('#modalBody form');
+                if (form) {
+                    const saveBtn = form.querySelector('.btn');
+                    if (saveBtn) {
+                        saveBtn.textContent = '💾 画像を更新';
+                        saveBtn.onclick = async (e) => {
+                            e.preventDefault();
+                            const fd = new FormData(form);
+                            const pos = fd.get('positivePrompt');
+                            const neg = fd.get('negativePrompt');
+                            
+                            try {
+                                db.run(`UPDATE images SET positive_prompt = ?, negative_prompt = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`, [pos, neg, imageId]);
+                                
+                                // Update tags: remove old, add new
+                                db.run(`DELETE FROM image_tags WHERE image_id = ?;`, [imageId]);
+                                selectedTags.forEach(t => {
+                                    db.run("INSERT INTO image_tags (image_id, tag_name, category) VALUES (?,?,?)", [imageId, t, 'その他']);
+                                });
+                                
+                                showToast('画像を更新しました！', 'success');
+                                markUnsaved();
+                                closeModal();
+                                loadImages();
+                            } catch (err) {
+                                showToast('更新に失敗しました: ' + err.message, 'error');
+                            }
+                        };
+                    }
+
+                    // Fill fields
+                    document.getElementById('positivePrompt').value = image.positive_prompt || '';
+                    document.getElementById('negativePrompt').value = image.negative_prompt || '';
+                    
+                    // Set selected tags
+                    selectedTags.clear();
+                    tags.forEach(t => selectedTags.add(t));
+                    renderTagCategories();
+
+                    // Display existing image preview
+                    const preview = document.getElementById('imagePreview');
+                    if (preview) {
+                        const blob = new Blob([image.image_data], { type: 'image/png' });
+                        preview.src = URL.createObjectURL(blob);
+                        preview.style.display = 'block';
+                    }
+                    
+                    // Hide file input label since we can't change the image data yet
+                    const fileInputLabel = form.querySelector('.file-input-label');
+                    if (fileInputLabel) {
+                        fileInputLabel.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading image for edit:', error);
+                showToast('画像の読み込みエラー: ' + error.message, 'error');
+            }
+        }
+
+        // Delete image (port from ChromeEdge)
+        function deleteImage(imageId, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('この画像を削除しますか？この操作は元に戻せません。')) return;
+            if (!db) return;
+
+            try {
+                db.run(`DELETE FROM images WHERE id = ?;`, [imageId]);
+                showToast('画像を削除しました！', 'success');
+                markUnsaved();
+                loadImages();
+                updateTagFilterBar();
+                closeDetailView();
+            } catch (error) {
+                console.error('Error deleting image:', error);
+                showToast('画像削除エラー: ' + error.message, 'error');
+            }
+        }
+
+        // --- Batch Import ---
+        function showBatchAddModal() {
+            if (!db) { initializeDatabase().then(showBatchAddModal); return; }
+            showModal('画像を一括インポート', `
+                <div style="text-align:center; padding:20px;">
+                    <div style="font-size: 50px; margin-bottom: 20px;">📦</div>
+                    <p style="margin-bottom: 20px; color: var(--text-secondary);">複数の画像を選択すると、自動的にスキャンしてデータベースにインポートします。</p>
+                    <button class="btn" onclick="document.getElementById('batchFileInput').click()">📁 画像またはフォルダを選択</button>
+                    <div id="batchProgressContainer" style="display:none; margin-top: 30px;">
+                        <p id="batchProgressText" style="font-size: 14px; margin-bottom: 10px;">画像を処理中...</p>
+                        <div class="progress-container"><div id="batchProgressBar" class="progress-bar"></div></div>
+                    </div>
+                </div>
+            `);
+        }
+
+        async function handleBatchFileInput(event) {
+            const files = Array.from(event.target.files).filter(f => f.type.startsWith('image/'));
+            if (files.length === 0) return;
+
+            document.getElementById('batchProgressContainer').style.display = 'block';
+            const bar = document.getElementById('batchProgressBar');
+            const text = document.getElementById('batchProgressText');
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            db.run('BEGIN TRANSACTION');
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const progress = Math.round(((i + 1) / files.length) * 100);
+                    bar.style.width = progress + '%';
+                    text.textContent = `画像を処理中... (${i + 1} / ${files.length})`;
+                    
+                    // Allow UI to refresh
+                    if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+
+                    try {
+                        const buf = await file.arrayBuffer();
+                        const raw = await extractText(buf);
+                        const p = parseMetadata(raw);
+                        
+                        db.run(`INSERT INTO images (filename, image_data, positive_prompt, negative_prompt, model, seed, steps, cfg, sampler, size, metadata_text, folder_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                            [file.name, new Uint8Array(buf), p.pos || '', p.neg || '', p.meta.model, p.meta.seed, p.meta.steps, p.meta.cfg, p.meta.sampler, p.meta.size, raw, currentFolderId]);
+                        
+                        const idRes = db.exec("SELECT last_insert_rowid()");
+                        const id = idRes[0].values[0][0];
+                        
+                        // Auto-tagging
+                        const suggested = suggestTagsFromMetadata(p);
+                        suggested.forEach(s => {
+                            db.run("INSERT INTO image_tags (image_id, tag_name, category) VALUES (?,?,?)", [id, s.tag, s.category || 'その他']);
+                        });
+                        
+                        successCount++;
+                    } catch (e) {
+                        console.error('Error processing', file.name, e);
+                        errorCount++;
+                    }
+                }
+                db.run('COMMIT');
+                showToast(`一括インポート完了！ 追加: ${successCount}, 失敗: ${errorCount}`, successCount > 0 ? 'success' : 'error');
+                markUnsaved();
+                closeModal();
+                loadImages();
+            } catch (err) {
+                db.run('ROLLBACK');
+                showToast('一括インポートに失敗しました: ' + err.message, 'error');
+            }
+            event.target.value = ''; // Reset input
+        }
+
+        function showImageDetail(id) {
+            const res = db.exec("SELECT * FROM images WHERE id = ?", [id]);
+            if (!res.length) return;
+            const img = {}; res[0].columns.forEach((c, i) => img[c] = res[0].values[0][i]);
+            currentImageIndex = currentImageList.indexOf(id);
+            const tagsRes = db.exec("SELECT tag_name FROM image_tags WHERE image_id = ?", [id]);
+            const tags = tagsRes.length ? tagsRes[0].values : [];
+            const url = imageObjectURLs.get(id);
+
+            const content = `
+                <div class="detail-image-container" style="text-align:center;">
+                    <img src="${url}" class="detail-image" style="max-height:80vh; object-fit:contain;">
+                    <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn" onclick="copyPromptToClipboard(${img.id})">📋 プロンプトをコピー</button>
+                        <button class="btn btn-secondary" onclick="copyAllMetadata(${img.id})">📝 すべてのメタデータをコピー</button>
+                        <button class="btn btn-secondary" onclick="editImage(${img.id}); closeDetailView();">✏️ 画像を編集</button>
+                        <button class="btn btn-secondary" onclick="showMoveImageModal(${img.id})">📁 フォルダへ移動</button>
+                        <button class="btn btn-secondary" style="color:var(--error);" onclick="deleteImage(${img.id})">🗑️ 画像を削除</button>
+                    </div>
+                </div>
+                <div class="detail-info">
+                    <div class="detail-section">
+                        <div class="detail-section-title">📋 ファイル情報</div>
+                        <div class="detail-meta-value" style="font-family: monospace; word-break: break-all;">${img.filename}</div>
+                    </div>
+                        <div class="detail-section">
+                            <div class="detail-section-title">
+                                <span>✨ ポジティブ プロンプト</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyPromptToClipboard(${img.id})">📋 コピー</button>
+                                    <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'positive_prompt')">✏️ 編集</button>
+                                </div>
+                            </div>
+                            <div class="detail-field-editable">
+                                <div class="detail-field-view" id="positive_prompt_view_${img.id}">
+                                    <div class="detail-prompt clickable-meta" onclick="copyPromptToClipboard(${img.id})">${escapeHtml(img.positive_prompt || 'なし')}</div>
+                                </div>
+                                <div class="detail-field-edit" id="positive_prompt_edit_${img.id}" style="display:none;">
+                                    <textarea class="detail-prompt-edit" id="positive_prompt_input_${img.id}">${String(img.positive_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                    <div class="form-actions" style="margin-top: 10px;">
+                                        <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'positive_prompt')">✖️ キャンセル</button>
+                                        <button class="btn" onclick="saveDetailField(${img.id}, 'positive_prompt')">💾 保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="detail-section-title">
+                                <span>🚫 ネガティブ プロンプト</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="detail-edit-btn" style="background: var(--success);" onclick="copyNegativePromptToClipboard(${img.id})">📋 コピー</button>
+                                    <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'negative_prompt')">✏️ 編集</button>
+                                </div>
+                            </div>
+                            <div class="detail-field-editable">
+                                <div class="detail-field-view" id="negative_prompt_view_${img.id}">
+                                    <div class="detail-prompt clickable-meta" style="color:var(--text-muted);" onclick="copyNegativePromptToClipboard(${img.id})">${escapeHtml(img.negative_prompt || 'なし')}</div>
+                                </div>
+                                <div class="detail-field-edit" id="negative_prompt_edit_${img.id}" style="display:none;">
+                                    <textarea class="detail-prompt-edit" id="negative_prompt_input_${img.id}">${String(img.negative_prompt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                    <div class="form-actions" style="margin-top: 10px;">
+                                        <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'negative_prompt')">✖️ キャンセル</button>
+                                        <button class="btn" onclick="saveDetailField(${img.id}, 'negative_prompt')">💾 保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="detail-section-title">
+                                <span>⚙️ 生成パラメータ</span>
+                                <button class="detail-edit-btn" onclick="editDetailField(${img.id}, 'params')">✏️ すべて編集</button>
+                            </div>
+                            <div class="detail-meta-grid">
+                                <div class="detail-meta-item">
+                                    <div class="detail-meta-label">モデル</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="model_view_${img.id}">
+                                            <div class="detail-meta-value clickable-meta" onclick="copyModelToClipboard(${img.id})">${escapeHtml(img.model || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="model_edit_${img.id}" style="display:none;">
+                                            <input type="text" class="detail-meta-value-edit" id="model_input_${img.id}" value="${escapeHtmlAttr(img.model || '')}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-meta-item">
+                                    <div class="detail-meta-label">サンプラー</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="sampler_view_${img.id}">
+                                            <div class="detail-meta-value clickable-meta" onclick="copyTextToClipboard(this.textContent)">${escapeHtml(img.sampler || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="sampler_edit_${img.id}" style="display:none;">
+                                            <input type="text" class="detail-meta-value-edit" id="sampler_input_${img.id}" value="${escapeHtmlAttr(img.sampler || '')}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-meta-item">
+                                    <div class="detail-meta-label">シード</div>
+                                    <div class="detail-field-editable">
+                                        <div class="detail-field-view" id="seed_view_${img.id}">
+                                            <div class="detail-meta-value clickable-meta" onclick="copySeedToClipboard(${img.id})">${escapeHtml(img.seed || '?')}</div>
+                                        </div>
+                                        <div class="detail-field-edit" id="seed_edit_${img.id}" style="display:none;">
+                                            <input type="text" class="detail-meta-value-edit" id="seed_input_${img.id}" value="${escapeHtmlAttr(img.seed || '')}">
+                                        </div>
+                                    </div>
+                                </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">ステップ数</div>
+                                <div class="detail-field-editable">
+                                    <div class="detail-field-view" id="steps_view_${img.id}">
+                                        <div class="detail-meta-value clickable-meta" onclick="copyTextToClipboard(this.textContent)">${escapeHtml(img.steps || '?')}</div>
+                                    </div>
+                                    <div class="detail-field-edit" id="steps_edit_${img.id}" style="display:none;">
+                                        <input type="text" class="detail-meta-value-edit" id="steps_input_${img.id}" value="${escapeHtmlAttr(img.steps || '')}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">CFG スケール</div>
+                                <div class="detail-field-editable">
+                                    <div class="detail-field-view" id="cfg_view_${img.id}">
+                                        <div class="detail-meta-value clickable-meta" onclick="copyTextToClipboard(this.textContent)">${escapeHtml(img.cfg || '?')}</div>
+                                    </div>
+                                    <div class="detail-field-edit" id="cfg_edit_${img.id}" style="display:none;">
+                                        <input type="text" class="detail-meta-value-edit" id="cfg_input_${img.id}" value="${escapeHtmlAttr(img.cfg || '')}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">解像度</div>
+                                <div class="detail-field-editable">
+                                    <div class="detail-field-view" id="size_view_${img.id}">
+                                        <div class="detail-meta-value clickable-meta" onclick="copyTextToClipboard(this.textContent)">${escapeHtml(img.size || '?')}</div>
+                                    </div>
+                                    <div class="detail-field-edit" id="size_edit_${img.id}" style="display:none;">
+                                        <input type="text" class="detail-meta-value-edit" id="size_input_${img.id}" value="${escapeHtmlAttr(img.size || '')}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-field-actions" id="params_actions_${img.id}" style="display: none; margin-top: 16px;">
+                            <button class="btn btn-secondary" onclick="cancelEditDetailField(${img.id}, 'params')">✖️ キャンセル</button>
+                            <button class="btn" onclick="saveDetailField(${img.id}, 'params')">💾 すべて保存</button>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">🏷️ タグ</div>
+                        <div class="detail-resources">
+                            ${tags.length ? tags.map(t => `<span class="detail-resource clickable-meta" onclick="toggleFilter('${t[0]}'); closeDetailView();">${t[0]}</span>`).join('') : '<span style="color:var(--text-muted)">タグなし</span>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailTitle').textContent = img.filename;
+            document.getElementById('detailContent').innerHTML = content;
+            document.getElementById('detailView').classList.add('active');
+            document.getElementById('detailView').scrollTop = 0;
+        }
+
+        function closeDetailView(e) { 
+            if (e && e.target !== e.currentTarget && e.target.id !== 'detailView' && e.target.id !== 'detailContent') return;
+            document.getElementById('detailView').classList.remove('active'); 
+            currentImageIndex = -1; 
+        }
+
+        // Edit detail field (toggle edit mode)
+        function editDetailField(imageId, fieldName) {
+            if (!db) return;
+
+            if (fieldName === 'params') {
+                const fields = ['model', 'sampler', 'seed', 'steps', 'cfg', 'size'];
+                fields.forEach(f => {
+                    const view = document.getElementById(`${f}_view_${imageId}`);
+                    const edit = document.getElementById(`${f}_edit_${imageId}`);
+                    if (view) view.style.display = 'none';
+                    if (edit) edit.style.display = 'block';
+                });
+                const actions = document.getElementById(`params_actions_${imageId}`);
+                if (actions) actions.style.display = 'flex';
+            } else {
+                const view = document.getElementById(`${fieldName}_view_${imageId}`);
+                const edit = document.getElementById(`${fieldName}_edit_${imageId}`);
+                if (view) view.style.display = 'none';
+                if (edit) edit.style.display = 'block';
+            }
+        }
+
+        // Cancel editing detail field
+        function cancelEditDetailField(imageId, fieldName) {
+            if (fieldName === 'params') {
+                const fields = ['model', 'sampler', 'seed', 'steps', 'cfg', 'size'];
+                fields.forEach(f => {
+                    const view = document.getElementById(`${f}_view_${imageId}`);
+                    const edit = document.getElementById(`${f}_edit_${imageId}`);
+                    if (view) view.style.display = 'block';
+                    if (edit) edit.style.display = 'none';
+                });
+                const actions = document.getElementById(`params_actions_${imageId}`);
+                if (actions) actions.style.display = 'none';
+            } else {
+                const view = document.getElementById(`${fieldName}_view_${imageId}`);
+                const edit = document.getElementById(`${fieldName}_edit_${imageId}`);
+                if (view) view.style.display = 'block';
+                if (edit) edit.style.display = 'none';
+            }
+        }
+
+        // Save detail field to database
+        function saveDetailField(imageId, fieldName) {
+            if (!db) return;
+
+            try {
+                if (fieldName === 'params') {
+                    const model = document.getElementById(`model_input_${imageId}`).value;
+                    const sampler = document.getElementById(`sampler_input_${imageId}`).value;
+                    const seed = document.getElementById(`seed_input_${imageId}`).value;
+                    const steps = document.getElementById(`steps_input_${imageId}`).value;
+                    const cfg = document.getElementById(`cfg_input_${imageId}`).value;
+                    const size = document.getElementById(`size_input_${imageId}`).value;
+
+                    db.run(`UPDATE images SET model=?, sampler=?, seed=?, steps=?, cfg=?, size=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+                        [model, sampler, seed, steps, cfg, size, imageId]);
+                } else {
+                    const value = document.getElementById(`${fieldName}_input_${imageId}`).value;
+                    db.run(`UPDATE images SET ${fieldName}=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`, [value, imageId]);
+                }
+
+                markUnsaved();
+                showToast('設定を保存しました！', 'success');
+                // Refresh detail view to show updated values
+                showImageDetail(imageId);
+                loadImages(); // Refresh grid too
+            } catch (error) {
+                console.error('Error saving field:', error);
+                showToast('保存エラー: ' + error.message, 'error');
+            }
+        }
+
+        function toggleSort(column) {
+            if (sortColumn === column) {
+                sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+            } else {
+                sortColumn = column;
+                sortOrder = 'DESC';
+            }
+            localStorage.setItem('promptdb-sort-col', sortColumn);
+            localStorage.setItem('promptdb-sort-order', sortOrder);
+            loadImages();
+        }
+
+        function updateListScale(scale) {
+            listScale = scale;
+            localStorage.setItem('promptdb-list-scale', scale);
+            document.documentElement.style.setProperty('--scale', scale);
+            const btns = document.querySelectorAll('.scale-btn');
+            btns.forEach(btn => {
+                const btnScale = parseFloat(btn.textContent) / 100;
+                btn.classList.toggle('active', Math.abs(btnScale - scale) < 0.01);
+            });
+            if (viewMode === 'list') loadImages();
+        }
+
+        // --- Categories & Tags ---
+        function getAllCategories() {
+            const categories = { ...TAG_CATEGORIES };
+            if (!categories['その他']) categories['その他'] = { icon: '📦', tags: [] };
+            
+            // Legacy mapping for English categories
+            const categoryMapping = {
+                'Art Styles': 'アートスタイル',
+                'Camera': 'カメラ',
+                'Lighting': 'ライティング',
+                'Themes': 'テーマ',
+                'Mood': '雰囲気',
+                'Colors': '色',
+                'Other': 'その他'
+            };
+
+            if (db) try {
+                const res = db.exec(`SELECT name, icon FROM custom_categories ORDER BY name;`);
+                if (res.length) res[0].values.forEach(r => { 
+                    const name = categoryMapping[r[0]] || r[0];
+                    if (!categories[name]) categories[name] = { icon: r[1] || '📁', tags: [] }; 
+                });
+            } catch (e) {}
+            return categories;
+        }
+
+        function getCategoryTags(cat) {
+            const tags = [...(TAG_CATEGORIES[cat]?.tags || [])];
+            if (db) try {
+                const res = db.exec(`SELECT tag_name FROM custom_tags WHERE category = ?;`, [cat]);
+                if (res.length) res[0].values.forEach(r => { if (!tags.includes(r[0])) tags.push(r[0]); });
+            } catch (e) {}
+            return tags;
+        }
+
+        function renderTagCategories() {
+            const container = document.getElementById('tagCategoriesContainer');
+            if (!container) return; 
+            container.innerHTML = '';
+            const cats = getAllCategories();
+            Object.entries(cats).forEach(([cat, data]) => {
+                const tags = getCategoryTags(cat);
+                const hasSelected = tags.some(t => selectedTags.has(t));
+                const block = document.createElement('div');
+                block.className = 'category-block';
+                block.onclick = (e) => {
+                    if (e.target.classList.contains('category-tag')) return;
+                    // Logic to show category manager or similar if needed
+                };
+                block.innerHTML = `
+                    <div class="category-title ${hasSelected ? 'has-selected' : ''}">
+                        <span>${data.icon || '📁'} ${cat}</span>
+                    </div>
+                    <div class="category-tags">
+                        ${tags.sort().map(t => `<span class="category-tag ${selectedTags.has(t) ? 'selected' : ''}" onclick="toggleTag('${t.replace(/'/g, "\\'")}')">${t}</span>`).join('')}
+                        <button type="button" class="category-tag" style="background:transparent; border:1px dashed var(--border-color); color:var(--text-muted);" onclick="addCustomTagPrompt('${cat}')">+</button>
+                    </div>
+                `;
+                container.appendChild(block);
+            });
+        }
+
+        function addCustomTagPrompt(cat) {
+            const tag = prompt(`${cat} に新しいタグを追加:`);
+            if (tag) {
+                try {
+                    db.run("INSERT INTO custom_tags (category, tag_name) VALUES (?,?)", [cat, tag]);
+                    selectedTags.add(tag);
+                    markUnsaved();
+                    renderTagCategories();
+                } catch(e) { showToast('このタグは既に存在します', 'error'); }
+            }
+        }
+
+        function toggleTag(tag) { 
+            if (selectedTags.has(tag)) selectedTags.delete(tag); 
+            else selectedTags.add(tag); 
+            renderTagCategories(); 
+        }
+
+        function toggleFilter(tag) {
+            if (activeFilters.has(tag)) activeFilters.delete(tag);
+            else activeFilters.add(tag);
+            loadImages();
+        }
+
+        function updateTagFilterBar() {
+            const bar = document.getElementById('tagFilterBar'); if (!bar || !db) return;
+            bar.innerHTML = '';
+            const cats = getAllCategories();
+            const tagCounts = {}; try {
+                const res = db.exec("SELECT tag_name, COUNT(*) FROM image_tags GROUP BY tag_name");
+                if (res.length) res[0].values.forEach(r => tagCounts[r[0]] = r[1]);
+            } catch(e) {}
+
+            Object.entries(cats).forEach(([cat, data]) => {
+                const tags = getCategoryTags(cat).filter(t => tagCounts[t]);
+                if (tags.length === 0) return;
+                const group = document.createElement('div'); group.className = 'tag-category-group';
+                const header = document.createElement('div'); header.className = 'tag-category-header collapsed';
+                if (tags.some(t => activeFilters.has(t))) header.classList.add('has-selected');
+                header.innerHTML = `<span class="tag-category-icon">▼</span><span>${data.icon} ${cat}</span><span class="tag-category-expand">(${tags.length})</span>`;
+                const tCont = document.createElement('div'); tCont.className = 'tag-category-tags';
+                tags.sort().forEach(t => {
+                    const btn = document.createElement('div'); btn.className = `tag-filter ${activeFilters.has(t) ? 'active' : ''}`;
+                    btn.innerHTML = `<span>${t}</span> <small style="opacity:0.6">${tagCounts[t]}</small>`;
+                    btn.onclick = (e) => { e.stopPropagation(); if (activeFilters.has(t)) activeFilters.delete(t); else activeFilters.add(t); loadImages(); };
+                    tCont.appendChild(btn);
+                });
+                header.onclick = () => { header.classList.toggle('collapsed'); group.classList.toggle('expanded'); };
+                group.appendChild(header); group.appendChild(tCont); bar.appendChild(group);
+            });
+        }
+
+        function updateFilterChips() {
+            const c = document.getElementById('filterChips'); if(!c) return; c.innerHTML = '';
+            activeFilters.forEach(t => {
+                const chip = document.createElement('div'); chip.className = 'filter-chip';
+                chip.innerHTML = `<span>${t}</span><span class="remove" onclick="activeFilters.delete('${t.replace(/'/g, "\\'")}'); loadImages();">×</span>`;
+                c.appendChild(chip);
+            });
+        }
+
+        // --- Folders & Bulk ---
+        function loadFolders() {
+            const s = document.getElementById('folderSelect'); if (!s || !db) return;
+            const res = db.exec("SELECT id, name FROM folders ORDER BY name");
+            s.innerHTML = '<option value="">すべてのフォルダ</option>';
+            if (res.length) res[0].values.forEach(r => s.innerHTML += `<option value="${r[0]}">${r[1]}</option>`);
+        }
+
+        function handleFolderChange() { currentFolderId = document.getElementById('folderSelect').value || null; loadImages(); }
+
+        function showAddCategoryModal() {
+            showModal('カテゴリを作成', `
+                <div class="form-group"><label class="form-label">カテゴリ名</label><input type="text" class="form-input" id="newCatName" required placeholder="例: 環境, キャラクター"></div>
+                <div class="form-group"><label class="form-label">アイコン (絵文字)</label><input type="text" class="form-input" id="newCatIcon" value="📁"></div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button><button class="btn" onclick="addNewCategory()">カテゴリを作成</button></div>
+            `);
+        }
+
+        function addNewCategory() {
+            const name = document.getElementById('newCatName').value.trim(), icon = document.getElementById('newCatIcon').value.trim();
+            if (!name) return;
+            try { 
+                db.run("INSERT INTO custom_categories (name, icon) VALUES (?,?)", [name, icon]); 
+                showToast('カテゴリを作成しました！'); 
+                markUnsaved(); 
+                closeModal(); 
+                updateTagFilterBar(); 
+            } catch(e) { showToast('カテゴリが既に存在するか、エラーが発生しました', 'error'); }
+        }
+
+        function showFolderManager() {
+            if (!db) return;
+            const res = db.exec("SELECT id, name FROM folders ORDER BY name");
+            const folders = res.length ? res[0].values : [];
+            const html = `
+                <div class="form-group">
+                    <label class="form-label">既存のフォルダ</label>
+                    <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px;">
+                        ${folders.length ? folders.map(f => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg-tertiary); border-radius:8px; margin-bottom:8px; border:1px solid var(--border-color);">
+                                <span style="font-weight:600;">📁 ${f[1]}</span>
+                                <button class="btn btn-secondary" style="color:var(--error); padding:4px 10px; font-size:12px;" onclick="deleteFolder(${f[0]})">削除</button>
+                            </div>
+                        `).join('') : '<p style="text-align:center; color:var(--text-muted); padding:20px;">まだフォルダが作成されていません。</p>'}
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:20px;">
+                    <label class="form-label">新規フォルダを作成</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" class="form-input" id="newFolderName" placeholder="フォルダ名...">
+                        <button class="btn" onclick="createFolder()">作成</button>
+                    </div>
+                </div>
+                <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal()">閉じる</button></div>
+            `;
+            showModal('フォルダを管理', html);
+        }
+
+        function createFolder() {
+            const n = document.getElementById('newFolderName').value.trim(); if (!n) return;
+            try { db.run("INSERT INTO folders (name) VALUES (?)", [n]); showToast('フォルダを作成しました！'); markUnsaved(); showFolderManager(); loadFolders(); } catch(e) { showToast('フォルダ名が既に存在します', 'error'); }
+        }
+
+        function deleteFolder(id) { 
+            if(!confirm('本当に削除しますか？ このフォルダ内の画像は未割り当てになりますが、削除はされません。')) return; 
+            try { 
+                db.run("DELETE FROM folders WHERE id=?", [id]); 
+                showToast('フォルダを削除しました'); 
+                markUnsaved(); 
+                showFolderManager(); 
+                loadFolders(); 
+                if (currentFolderId == id) { currentFolderId = null; loadImages(); }
+            } catch(e) { showToast('フォルダ削除エラー', 'error'); } 
+        }
+
+        function bulkDelete() { 
+            if(!confirm(`${selectedIds.size} 枚の画像を永久に削除しますか？ この操作は取り消せません。`)) return; 
+            try { 
+                db.run('BEGIN TRANSACTION'); 
+                for(let id of selectedIds) db.run("DELETE FROM images WHERE id=?", [id]); 
+                db.run('COMMIT'); 
+                selectedIds.clear(); 
+                markUnsaved(); 
+                loadImages(); 
+                updateSelectionUI(); 
+                showToast('一括削除が完了しました');
+            } catch(e) { 
+                db.run('ROLLBACK'); 
+                showToast('一括削除に失敗しました', 'error');
+            } 
+        }
+
+        function bulkMove() {
+            if (!db) return;
+            const res = db.exec("SELECT id, name FROM folders ORDER BY name");
+            const folders = res.length ? res[0].values : [];
+            const html = `
+                <div class="form-group">
+                    <label class="form-label">${selectedIds.size} 個のアイテムの移動先フォルダを選択</label>
+                    <select id="bulkMoveFolder" class="form-input">
+                        <option value="">(フォルダなし / ルート)</option>
+                        ${folders.map(f => `<option value="${f[0]}">${f[1]}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                    <button class="btn" onclick="executeBulkMove()">画像を移動</button>
+                </div>
+            `;
+            showModal('一括移動', html);
+        }
+
+        function executeBulkMove() {
+            const folderId = document.getElementById('bulkMoveFolder').value || null;
+            try {
+                db.run('BEGIN TRANSACTION');
+                for (let id of selectedIds) db.run("UPDATE images SET folder_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [folderId, id]);
+                db.run('COMMIT');
+                showToast('画像を正常に移動しました！');
+                markUnsaved();
+                clearSelection();
+                closeModal();
+                loadImages();
+            } catch(e) { db.run('ROLLBACK'); showToast('移動に失敗しました', 'error'); }
+        }
+
+        function showMoveImageModal(imageId) {
+            if (!db) return;
+            const res = db.exec("SELECT folder_id FROM images WHERE id = ?", [imageId]);
+            const currentFid = res.length ? res[0].values[0][0] : null;
+            const resF = db.exec("SELECT id, name FROM folders ORDER BY name");
+            const folders = resF.length ? resF[0].values : [];
+            
+            const html = `
+                <div class="form-group">
+                    <label class="form-label">移動先フォルダを選択</label>
+                    <select id="moveImageFolder" class="form-input">
+                        <option value="">(フォルダなし / ルート)</option>
+                        ${folders.map(f => `<option value="${f[0]}" ${currentFid == f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                    <button class="btn" onclick="moveImageToFolder(${imageId})">画像を移動</button>
+                </div>
+            `;
+            showModal('画像をフォルダへ移動', html);
+        }
+
+        function moveImageToFolder(imageId) {
+            const folderId = document.getElementById('moveImageFolder').value || null;
+            try {
+                db.run("UPDATE images SET folder_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [folderId, imageId]);
+                showToast('画像を移動しました！');
+                markUnsaved();
+                closeModal();
+                loadImages();
+            } catch(e) { showToast('移動に失敗しました', 'error'); }
+        }
+
+        function bulkTag() {
+            isAddingImage = false; // Reuse tag rendering logic
+            const html = `
+                <div class="form-group">
+                    <label class="form-label">選択した ${selectedIds.size} 枚の画像にタグを追加</label>
+                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">選択したタグがすべての画像に追加されます。既存のタグは保持されます。</p>
+                    <div class="tag-categories" id="tagCategoriesContainer"></div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                    <button class="btn" onclick="executeBulkTag()">タグを適用</button>
+                </div>
+            `;
+            showModal('一括タグ付け', html);
+            renderTagCategories();
+        }
+
+        function executeBulkTag() {
+            try {
+                db.run('BEGIN TRANSACTION');
+                for (let id of selectedIds) {
+                    selectedTags.forEach(tag => {
+                        try { db.run("INSERT INTO image_tags (image_id, tag_name, category) VALUES (?,?,?)", [id, tag, 'その他']); } catch(e) {}
+                    });
+                }
+                db.run('COMMIT');
+                showToast('選択したすべての画像にタグを適用しました！');
+                markUnsaved();
+                clearSelection();
+                closeModal();
+                loadImages();
+            } catch(e) { db.run('ROLLBACK'); showToast('タグ付けに失敗しました', 'error'); }
+        }
+
+        // --- Helpers ---
+        function escapeHtml(t) { 
+            if (!t) return "";
+            const d = document.createElement('div'); d.textContent = t; return d.innerHTML; 
+        }
+
+        function escapeHtmlAttr(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function copyToClipboard(text, label = 'テキスト') {
+            if (!text || text === 'None' || text === 'なし' || text === '?') return;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`${label}をクリップボードにコピーしました！`, 'success');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                showToast('コピーに失敗しました', 'error');
+            });
+        }
+
+        function copyTextToClipboard(text) {
+            if (!text || text === 'None' || text === 'なし' || text === '?') return;
+            navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました！', 'success'));
+        }
+
+        function copyPromptToClipboard(id, e) { 
+            if(e) e.stopPropagation(); 
+            const res = db.exec("SELECT positive_prompt FROM images WHERE id=?", [id]); 
+            if(res.length && res[0].values[0][0]) { 
+                copyToClipboard(res[0].values[0][0], 'ポジティブ プロンプト'); 
+            } else {
+                showToast('コピーするプロンプトがありません', 'warning');
+            }
+        }
+
+        function copyNegativePromptToClipboard(id, e) {
+            if(e) e.stopPropagation();
+            const res = db.exec("SELECT negative_prompt FROM images WHERE id=?", [id]);
+            if(res.length && res[0].values.length) {
+                copyToClipboard(res[0].values[0][0], 'ネガティブ プロンプト');
+            } else {
+                showToast('コピーするネガティブ プロンプトがありません', 'warning');
+            }
+        }
+
+        function copyModelToClipboard(id, e) {
+            if(e) e.stopPropagation();
+            const res = db.exec("SELECT model FROM images WHERE id=?", [id]);
+            if(res.length && res[0].values.length) {
+                copyToClipboard(res[0].values[0][0], 'モデル');
+            }
+        }
+
+        function copySeedToClipboard(id, e) {
+            if(e) e.stopPropagation();
+            const res = db.exec("SELECT seed FROM images WHERE id=?", [id]);
+            if(res.length && res[0].values.length) {
+                copyToClipboard(res[0].values[0][0], 'シード');
+            }
+        }
+
+        function copyAllMetadata(id) {
+            const res = db.exec("SELECT metadata_text FROM images WHERE id=?", [id]);
+            if (res.length && res[0].values[0][0]) {
+                navigator.clipboard.writeText(res[0].values[0][0]);
+                showToast('すべてのメタデータをコピーしました！');
+            }
+        }
+
+        function deleteImage(id, e) { 
+            if(e) e.stopPropagation(); 
+            if(!confirm('本当に削除しますか？ この操作は元に戻せません。')) return; 
+            try {
+                db.run("DELETE FROM images WHERE id=?", [id]); 
+                showToast('画像を削除しました'); 
+                markUnsaved(); 
+                loadImages(); 
+                if (document.getElementById('detailView').classList.contains('active')) closeDetailView();
+            } catch(e) { showToast('削除に失敗しました', 'error'); }
+        }
+
+        function clearAllTagFilters() { 
+            if (activeFilters.size === 0) return;
+            activeFilters.clear(); 
+            loadImages(); 
+            showToast('すべてのフィルタを解除しました');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const theme = localStorage.getItem('promptcraft-theme') || 'dark';
+            document.body.setAttribute('data-theme', theme);
+            
+            // Initialize scale
+            updateListScale(listScale);
+            
+            setupKeyboardShortcuts();
+            
+            // Background click listeners
+            document.getElementById('detailView').addEventListener('click', closeDetailView);
+            document.getElementById('modal').addEventListener('click', (e) => { if(e.target.id === 'modal') closeModal(); });
+            
+            updateSaveIndicator();
+            
+            // Check if there's a saved view mode in local storage
+            const savedView = localStorage.getItem('promptdb-view-mode');
+            if (savedView) {
+                viewMode = savedView;
+                document.getElementById('viewToggleBtn').innerHTML = viewMode === 'grid' ? '🖼️' : '📋';
+                
+                // Show scale control if in list view
+                if (viewMode === 'list') {
+                    const grid = document.getElementById('imagesGrid');
+                    if (grid) grid.classList.add('list-view');
+                    const scaleControl = document.getElementById('listScaleControl');
+                    if (scaleControl) scaleControl.style.display = 'flex';
+                }
+            }
+        });
+
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                if (e.key === 'Escape') { 
+                    if (categoryDrawerOpen) toggleCategoryDrawer(); 
+                    else if (document.getElementById('detailView').classList.contains('active')) closeDetailView();
+                    else closeModal(); 
+                }
+                if (e.key === '/') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+                if (e.key.toLowerCase() === 'v') toggleViewMode();
+                if (e.key.toLowerCase() === 't') toggleTheme();
+                if (e.key.toLowerCase() === 'b') toggleCategoryDrawer();
+                
+                if (e.ctrlKey && e.key.toLowerCase() === 'o') { e.preventDefault(); showImportModal(); }
+                if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportDatabase(); }
+                
+                // Navigation in detail view
+                if (document.getElementById('detailView').classList.contains('active')) {
+                    if (e.key === 'ArrowRight') {
+                        if (currentImageIndex < currentImageList.length - 1) showImageDetail(currentImageList[currentImageIndex + 1]);
+                    }
+                    if (e.key === 'ArrowLeft') {
+                        if (currentImageIndex > 0) showImageDetail(currentImageList[currentImageIndex - 1]);
+                    }
+                }
+            });
+        }
+
+        function showHelpModal() {
+            showModal('ヘルプとショートカット', `
+                <div style="line-height:1.8;">
+                    <h3 style="color:var(--accent); margin-bottom:10px;">⌨️ キーボードショートカット</h3>
+                    <ul style="list-style:none; padding:0;">
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">V</kbd> グリッド/リスト表示の切り替え</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">T</kbd> ダーク/ライトモードの切り替え</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">B</kbd> カテゴリサイドバーの切り替え</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">/</kbd> 検索バーにフォーカス</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">Esc</kbd> モーダルを閉じる / 戻る</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">Ctrl+O</kbd> データベースをインポート</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">Ctrl+E</kbd> データベースをエクスポート</li>
+                        <li><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">Shift+Click</kbd> 範囲選択</li>
+                    </ul>
+                    <h3 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">🔍 スマート検索</h3>
+                    <p style="font-size:14px;">以下の接頭辞を使用して詳細な検索が可能です:</p>
+                    <code style="display:block; background:var(--bg-tertiary); padding:10px; border-radius:8px; font-size:13px; margin-top:5px;">model:sdxl size:1024x1024 steps:30 cfg:7</code>
+                    <h3 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">💾 保存に関する注意</h3>
+                    <p style="font-size:14px; color:var(--warning);">この Universal Edition はすべてブラウザメモリ上で動作します。変更を恒久的に保存するには、<strong>必ずデータベースをエクスポート</strong>してください。</p>
+                </div>
+            `);
+        }
+    
+    </script>
+</body>
+</html>
+
